@@ -21,9 +21,9 @@ public class CameraReferenceImage {
     @Nonnull
     private Integer systemId;
 
-    @ManyToOne(targetEntity = Camera.class)
+    @OneToOne(targetEntity = Camera.class)
     @Nonnull
-    private Integer cameraId;
+    private Camera camera;
 
     @Nonnull
     private String imagePath;

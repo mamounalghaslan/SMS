@@ -20,7 +20,7 @@ public class ProductImage {
 
     @ManyToOne(targetEntity = Product.class)
     @Nonnull
-    private Integer productId;
+    private Product product;
 
     @Nonnull
     private String imagePath;

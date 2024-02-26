@@ -20,10 +20,10 @@ public class ModelProductImage {
 
     @ManyToOne(targetEntity = Model.class)
     @Nonnull
-    private Integer modelId;
+    private Model model;
 
     @ManyToOne(targetEntity = ProductImage.class)
     @Nonnull
-    private Integer productImageId;
+    private ProductImage productImage;
 
 }

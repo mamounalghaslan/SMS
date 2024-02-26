@@ -19,7 +19,8 @@ public class Notification {
     private Integer systemId;
 
     @Nonnull
-    private String productName;
+    @ManyToOne(targetEntity = Product.class)
+    private Product product;
 
     @ManyToOne(targetEntity = NotificationErrorType.class)
     @Nonnull

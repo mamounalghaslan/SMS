@@ -22,6 +22,7 @@ public class Camera {
     private String ipAddress;
 
     @Nonnull
+    @Column(unique = true)
     private String location;
 
     @Nonnull
@@ -32,6 +33,9 @@ public class Camera {
 
     @ManyToOne(targetEntity = CameraStatusType.class)
     @Nonnull
-    private String statusTypeId;
+    private CameraStatusType cameraStatusType;
+
+    @OneToOne(targetEntity = CameraReferenceImage.class)
+    private CameraReferenceImage cameraReferenceImage;
 
 }

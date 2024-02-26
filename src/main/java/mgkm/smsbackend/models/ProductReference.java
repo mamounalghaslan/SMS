@@ -20,11 +20,11 @@ public class ProductReference {
 
     @ManyToOne(targetEntity = Camera.class)
     @Nonnull
-    private Integer cameraId;
+    private Camera camera;
 
     @ManyToOne(targetEntity = Product.class)
     @Nonnull
-    private Integer productId;
+    private Product product;
 
     @Nonnull
     private Float xCenter;

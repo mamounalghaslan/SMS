@@ -28,6 +28,6 @@ public class Product {
 
     @OneToMany(targetEntity = ProductImage.class)
     @Nonnull
-    private List<ProductImage> images;
+    private List<ProductImage> productImages;
 
 }

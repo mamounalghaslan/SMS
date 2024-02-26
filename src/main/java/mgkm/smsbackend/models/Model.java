@@ -23,7 +23,7 @@ public class Model {
 
     @ManyToOne(targetEntity = ModelType.class)
     @Nonnull
-    private Integer typeId;
+    private ModelType modelType;
 
     @Nonnull
     private LocalDate creationDate;
