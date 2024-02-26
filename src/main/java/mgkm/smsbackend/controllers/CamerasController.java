@@ -11,7 +11,7 @@ import java.util.List;
 @RestController
 @RequestMapping("api/cameras")
 @AllArgsConstructor
-public class CamerasController {
+public class CamerasController extends BaseController {
 
     private final CamerasService camerasService;
 

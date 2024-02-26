@@ -14,8 +14,7 @@ import lombok.NoArgsConstructor;
 public class ProductImage {
 
     @Id
-    @GeneratedValue
-    @Nonnull
+    @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private Integer systemId;
 
     @ManyToOne(targetEntity = Product.class)

@@ -16,8 +16,7 @@ import java.util.List;
 public class Product {
 
     @Id
-    @GeneratedValue
-    @Nonnull
+    @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private Integer systemId;
 
     @Nonnull

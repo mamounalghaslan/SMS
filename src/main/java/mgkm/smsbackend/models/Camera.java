@@ -14,8 +14,7 @@ import lombok.NoArgsConstructor;
 public class Camera {
 
     @Id
-    @GeneratedValue
-    @Nonnull
+    @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private Integer systemId;
 
     @Nonnull
@@ -32,7 +31,6 @@ public class Camera {
     private String password;
 
     @ManyToOne(targetEntity = CameraStatusType.class)
-    @Nonnull
     private CameraStatusType cameraStatusType;
 
     @OneToOne(targetEntity = CameraReferenceImage.class)

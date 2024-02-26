@@ -14,8 +14,7 @@ import lombok.NoArgsConstructor;
 public class Notification {
 
     @Id
-    @GeneratedValue
-    @Nonnull
+    @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private Integer systemId;
 
     @Nonnull

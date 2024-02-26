@@ -17,8 +17,7 @@ import java.util.List;
 public class CameraReferenceImage {
 
     @Id
-    @GeneratedValue
-    @Nonnull
+    @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private Integer systemId;
 
     @OneToOne(targetEntity = Camera.class)

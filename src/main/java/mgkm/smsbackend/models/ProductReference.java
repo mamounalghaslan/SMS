@@ -14,8 +14,7 @@ import lombok.NoArgsConstructor;
 public class ProductReference {
 
     @Id
-    @GeneratedValue
-    @Nonnull
+    @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private Integer systemId;
 
     @ManyToOne(targetEntity = Camera.class)
