@@ -21,7 +21,8 @@ public class ProductImage {
     @Nonnull
     private Product product;
 
-    @Nonnull
     private String imagePath;
+
+    private String imageFileBase64;
 
 }

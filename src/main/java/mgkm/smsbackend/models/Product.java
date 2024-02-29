@@ -6,8 +6,6 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.List;
-
 @Data
 @Entity
 @Table
@@ -21,12 +19,5 @@ public class Product {
 
     @Nonnull
     private String name;
-
-    @Nonnull
-    private String location;
-
-    @OneToMany(targetEntity = ProductImage.class)
-    @Nonnull
-    private List<ProductImage> productImages;
 
 }

@@ -7,7 +7,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
-import java.util.List;
 
 @Data
 @Entity
@@ -26,9 +25,5 @@ public class Model {
 
     @Nonnull
     private LocalDate creationDate;
-
-    @OneToMany(targetEntity = Product.class)
-    @Nonnull
-    private List<Product> products;
 
 }

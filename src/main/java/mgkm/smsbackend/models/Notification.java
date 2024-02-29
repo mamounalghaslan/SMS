@@ -23,7 +23,7 @@ public class Notification {
 
     @ManyToOne(targetEntity = NotificationErrorType.class)
     @Nonnull
-    private NotificationErrorType notificationErrorType;
+    private NotificationErrorType errorType;
 
     @ManyToOne(targetEntity = NotificationStatusType.class)
     @Nonnull

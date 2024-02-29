@@ -6,6 +6,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDate;
+
 @Data
 @Entity
 @Table
@@ -17,11 +19,14 @@ public class Camera {
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private Integer systemId;
 
+    @ManyToOne(targetEntity = CameraStatusType.class)
+    @Nonnull
+    private CameraStatusType cameraStatusType;
+
     @Nonnull
     private String ipAddress;
 
     @Nonnull
-    @Column(unique = true)
     private String location;
 
     @Nonnull
@@ -30,10 +35,10 @@ public class Camera {
     @Nonnull
     private String password;
 
-    @ManyToOne(targetEntity = CameraStatusType.class)
-    private CameraStatusType cameraStatusType;
+    private String referenceImagePath;
 
-    @OneToOne(targetEntity = CameraReferenceImage.class)
-    private CameraReferenceImage cameraReferenceImage;
+    private String referenceImageFileBase64;
+
+    private LocalDate referenceImageCaptureDate;
 
 }
