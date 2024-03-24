@@ -6,7 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Data
 @Entity
@@ -39,6 +39,6 @@ public class Camera {
 
     private String referenceImageFileBase64;
 
-    private LocalDate referenceImageCaptureDate;
+    private LocalDateTime referenceImageCaptureDate;
 
 }

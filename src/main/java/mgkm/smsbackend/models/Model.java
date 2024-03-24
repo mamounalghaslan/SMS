@@ -6,7 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Data
 @Entity
@@ -24,6 +24,8 @@ public class Model {
     private ModelType modelType;
 
     @Nonnull
-    private LocalDate creationDate;
+    private LocalDateTime creationDate;
+
+    private Boolean isRunning = Boolean.FALSE;
 
 }

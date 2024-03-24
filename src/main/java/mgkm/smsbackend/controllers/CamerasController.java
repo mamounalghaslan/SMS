@@ -41,7 +41,8 @@ public class CamerasController extends BaseController {
 
     @PostMapping("/updateCameraReferenceImage/{cameraId}")
     public void updateCameraReferenceImage(@PathVariable("cameraId") Integer cameraId,
-                                           @RequestParam(required = false, value = "imageFile") MultipartFile imageFile) throws IOException {
+                                           @RequestParam(required = false, value = "imageFile") MultipartFile imageFile)
+            throws IOException {
         this.camerasService.updateCameraReferenceImage(cameraId, imageFile);
     }
 
