@@ -34,8 +34,27 @@ public class CamerasService extends ImageBase64Service {
         return this.rootImagesPath + "/cameraReferenceImages/" + cameraId + "/";
     }
 
+    public List<Camera> getAllCameras() {
+        return (List<Camera>) this.cameraRepository.findAll();
+    }
+
+    public List<CameraStatusType> getAllCameraStatusTypes() {
+        return (List<CameraStatusType>) this.cameraStatusTypeRepository.findAll();
+    }
+
+    public void addNewCamera(Camera camera) {
+        CameraStatusType cameraStatusType = this.cameraStatusTypeRepository.findById(1).orElse(null);
+        assert cameraStatusType != null;
+        camera.setCameraStatusType(cameraStatusType);
+        this.cameraRepository.save(camera);
+    }
+
     public Camera getCamera(Integer cameraId) {
         return this.cameraRepository.findById(cameraId).orElse(null);
+    }
+
+    public void updateCamera(Camera camera) {
+        this.cameraRepository.save(camera);
     }
 
     public void deleteCamera(Integer cameraId) throws IOException {
@@ -49,51 +68,6 @@ public class CamerasService extends ImageBase64Service {
         }
 
         this.cameraRepository.deleteById(cameraId);
-    }
-
-    public void addNewCamera(Camera camera) {
-        CameraStatusType cameraStatusType = this.cameraStatusTypeRepository.findById(1).orElse(null);
-        assert cameraStatusType != null;
-        camera.setCameraStatusType(cameraStatusType);
-        this.cameraRepository.save(camera);
-    }
-
-    public List<Camera> getAllCameras() throws IOException {
-        List<Camera> cameras = (List<Camera>) this.cameraRepository.findAll();
-
-        for (Camera camera : cameras) {
-            camera.setReferenceImageFileBase64(loadImageAsBase64(camera.getReferenceImagePath()));
-        }
-
-        return cameras;
-    }
-
-    public List<CameraStatusType> getAllCameraStatusTypes() {
-        return (List<CameraStatusType>) this.cameraStatusTypeRepository.findAll();
-    }
-
-    public void updateCameraReferenceImage(Integer cameraId, MultipartFile imageFile) throws IOException {
-
-        String referenceImageUrl = this.getReferenceImageUrl(cameraId);
-        String referenceImageUri = referenceImageUrl + imageFile.getOriginalFilename();
-
-        Path path = Paths.get(referenceImageUrl);
-
-        if (!Files.exists(path)) {
-            Files.createDirectories(path);
-        } else {
-            FileUtils.cleanDirectory(path.toFile());
-        }
-
-        Files.write(Paths.get(referenceImageUri), imageFile.getBytes());
-
-        Camera camera = this.cameraRepository.findById(cameraId).orElse(null);
-        if (camera != null) {
-            camera.setReferenceImagePath(referenceImageUri);
-            camera.setReferenceImageCaptureDate(java.time.LocalDateTime.now());
-            this.cameraRepository.save(camera);
-        }
-
     }
 
 }

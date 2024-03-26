@@ -6,8 +6,6 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
-
 @Data
 @Entity
 @Table
@@ -34,11 +32,5 @@ public class Camera {
 
     @Nonnull
     private String password;
-
-    private String referenceImagePath;
-
-    private String referenceImageFileBase64;
-
-    private LocalDateTime referenceImageCaptureDate;
 
 }

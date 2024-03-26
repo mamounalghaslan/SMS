@@ -17,13 +17,9 @@ public class ProductReference {
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private Integer systemId;
 
-    @ManyToOne(targetEntity = Camera.class)
+    @ManyToOne(targetEntity = ReferenceImage.class)
     @Nonnull
-    private Camera camera;
-
-    @ManyToOne(targetEntity = Product.class)
-    @Nonnull
-    private Product product;
+    private ReferenceImage referenceImage;
 
     @Nonnull
     private Float xCenter;
@@ -36,5 +32,10 @@ public class ProductReference {
 
     @Nonnull
     private Float height;
+
+    @ManyToOne(targetEntity = Product.class)
+    private Product product;
+
+    private String imagePath;
 
 }

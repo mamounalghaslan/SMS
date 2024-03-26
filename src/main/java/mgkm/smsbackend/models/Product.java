@@ -20,4 +20,8 @@ public class Product {
     @Nonnull
     private String name;
 
+    private String displayImagePath;
+
+    private String displayImageFileBase64;
+
 }

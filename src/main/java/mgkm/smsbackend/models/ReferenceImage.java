@@ -11,15 +11,17 @@ import lombok.NoArgsConstructor;
 @Table
 @AllArgsConstructor
 @NoArgsConstructor
-public class ProductImage {
+public class ReferenceImage {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private Integer systemId;
 
-    @ManyToOne(targetEntity = Product.class)
+    @ManyToOne(targetEntity = Camera.class)
     @Nonnull
-    private Product product;
+    private Camera camera;
+
+    private Boolean isDefault = false;
 
     private String imagePath;
 

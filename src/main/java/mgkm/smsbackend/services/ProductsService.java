@@ -1,19 +1,17 @@
 package mgkm.smsbackend.services;
 
 import mgkm.smsbackend.models.Product;
-import mgkm.smsbackend.models.ProductImage;
-import mgkm.smsbackend.repositories.ProductImageRepository;
+import mgkm.smsbackend.models.ProductReference;
+import mgkm.smsbackend.repositories.ProductReferenceRepository;
 import mgkm.smsbackend.repositories.ProductRepository;
 import org.apache.tomcat.util.http.fileupload.FileUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -24,16 +22,20 @@ public class ProductsService extends ImageBase64Service {
 
     private final ProductRepository productRepository;
 
-    private final ProductImageRepository productImageRepository;
+    private final ProductReferenceRepository productReferenceRepository;
 
     public ProductsService(ProductRepository productRepository,
-                           ProductImageRepository productImageRepository) {
+                           ProductReferenceRepository productReferenceRepository) {
         this.productRepository = productRepository;
-        this.productImageRepository = productImageRepository;
+        this.productReferenceRepository = productReferenceRepository;
     }
 
-    private String getProductImagesUrl(Integer productId) {
-        return this.rootImagesPath + "/productImages/" + productId + "/";
+    private String getProductDisplayImageUrl(Integer productId) {
+        return this.rootImagesPath + "/productsDisplayImages/" + productId + "/";
+    }
+
+    private String getProductsReferencesImageUrl(Integer productId) {
+        return this.rootImagesPath + "/productsReferencesImages/" + productId + "/";
     }
 
     public List<Product> getAllProducts() {
@@ -46,67 +48,39 @@ public class ProductsService extends ImageBase64Service {
 
     public void deleteProduct(Integer productId) throws IOException {
 
-        String productImagesUrl = this.getProductImagesUrl(productId);
+        Product product = this.productRepository.findById(productId).orElse(null);
+        assert product != null;
 
-        Path path = Paths.get(productImagesUrl);
+        String productDisplayImageUrl = this.getProductDisplayImageUrl(productId);
+
+        Path path = Paths.get(productDisplayImageUrl);
         if(Files.exists(path)) {
             FileUtils.cleanDirectory(path.toFile());
             Files.delete(path);
         }
 
-        this.productImageRepository.findProductImageByProductSystemId(productId)
-                .forEach(productImage -> this.productImageRepository.deleteById(productImage.getSystemId()));
-
-        // TODO: delete product references
-
-        this.productRepository.deleteById(productId);
+        this.resetProductReferencesByProduct(product);
+        this.productRepository.delete(product);
 
     }
 
-    public void addProductImages(Integer productId, List<MultipartFile> productImagesFiles) throws IOException {
+    private void resetProductReferencesByProduct(Product product) throws IOException {
 
-        Product product = this.productRepository.findById(productId).orElse(null);
-        assert product != null;
+        String productsReferencesImageUrl = this.getProductsReferencesImageUrl(product.getSystemId());
 
-        String productImagesUrl = this.getProductImagesUrl(productId);
-
-        Path path = Paths.get(productImagesUrl);
-
-        if(!Files.exists(path)) {
-            Files.createDirectories(path);
-        } else {
+        Path path = Paths.get(productsReferencesImageUrl);
+        if(Files.exists(path)) {
             FileUtils.cleanDirectory(path.toFile());
+            Files.delete(path);
         }
 
-        List<ProductImage> productImages = new ArrayList<>();
+        List<ProductReference> productReferences =
+                (List<ProductReference>) this.productReferenceRepository.findAllByProduct(product);
 
-        for (MultipartFile productImageFile : productImagesFiles) {
+        productReferences.forEach(productReference -> productReference.setProduct(null));
 
-            String productImageUri = productImagesUrl + productImageFile.getOriginalFilename();
-
-            Files.write(Paths.get(productImageUri), productImageFile.getBytes());
-
-            ProductImage productImage = new ProductImage();
-            productImage.setProduct(product);
-            productImage.setImagePath(productImageUri);
-            productImages.add(productImage);
-        }
-
-        this.productImageRepository.saveAll(productImages);
+        this.productReferenceRepository.saveAll(productReferences);
 
     }
-
-    public Product getProduct(Integer productId) {
-        return this.productRepository.findById(productId).orElse(null);
-    }
-
-    public List<ProductImage> getAllProductsImages() throws IOException {
-        List<ProductImage> productsImages = (List<ProductImage>) this.productImageRepository.findAll();
-        for (ProductImage productImage : productsImages) {
-            productImage.setImageFileBase64(loadImageAsBase64(productImage.getImagePath()));
-        }
-        return productsImages;
-    }
-
 
 }
