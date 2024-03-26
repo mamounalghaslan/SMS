@@ -2,48 +2,37 @@ package mgkm.smsbackend.services;
 
 import mgkm.smsbackend.models.Camera;
 import mgkm.smsbackend.models.CameraStatusType;
+import mgkm.smsbackend.models.ShelfImage;
 import mgkm.smsbackend.repositories.CameraRepository;
 import mgkm.smsbackend.repositories.CameraStatusTypeRepository;
-import org.apache.tomcat.util.http.fileupload.FileUtils;
-import org.springframework.beans.factory.annotation.Value;
+import mgkm.smsbackend.repositories.ShelfImageRepository;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.List;
 
 @Service
-public class CamerasService extends ImageBase64Service {
-
-    @Value("${sms-root-images-path}")
-    private String rootImagesPath;
+public class CamerasService {
 
     private final CameraRepository cameraRepository;
 
     private final CameraStatusTypeRepository cameraStatusTypeRepository;
 
-    public CamerasService(CameraRepository cameraRepository, CameraStatusTypeRepository cameraStatusTypeRepository) {
+    private final ShelfImageRepository shelfImageRepository;
+
+    public CamerasService(CameraRepository cameraRepository,
+                          CameraStatusTypeRepository cameraStatusTypeRepository,
+                          ShelfImageRepository shelfImageRepository) {
         this.cameraRepository = cameraRepository;
         this.cameraStatusTypeRepository = cameraStatusTypeRepository;
-    }
-
-    private String getReferenceImageUrl(Integer cameraId) {
-        return this.rootImagesPath + "/cameraReferenceImages/" + cameraId + "/";
+        this.shelfImageRepository = shelfImageRepository;
     }
 
     public List<Camera> getAllCameras() {
         return (List<Camera>) this.cameraRepository.findAll();
     }
 
-    public List<CameraStatusType> getAllCameraStatusTypes() {
-        return (List<CameraStatusType>) this.cameraStatusTypeRepository.findAll();
-    }
-
     public void addNewCamera(Camera camera) {
-        CameraStatusType cameraStatusType = this.cameraStatusTypeRepository.findById(1).orElse(null);
+        CameraStatusType cameraStatusType = this.cameraStatusTypeRepository.findById(2).orElse(null);
         assert cameraStatusType != null;
         camera.setCameraStatusType(cameraStatusType);
         this.cameraRepository.save(camera);
@@ -53,21 +42,21 @@ public class CamerasService extends ImageBase64Service {
         return this.cameraRepository.findById(cameraId).orElse(null);
     }
 
-    public void updateCamera(Camera camera) {
-        this.cameraRepository.save(camera);
-    }
+    public void deleteCamera(Integer cameraId) {
 
-    public void deleteCamera(Integer cameraId) throws IOException {
+        Camera camera = this.cameraRepository.findById(cameraId).orElse(null);
 
-        String referenceImageUrl = this.getReferenceImageUrl(cameraId);
+        if(camera != null) {
+            ShelfImage referenceShelfImage = this.shelfImageRepository.findByReferencedCamera(camera);
 
-        Path path = Paths.get(referenceImageUrl);
-        if(Files.exists(path)) {
-            FileUtils.cleanDirectory(path.toFile());
-            Files.delete(path);
+            if (referenceShelfImage != null) {
+                referenceShelfImage.setReferencedCamera(null);
+                this.shelfImageRepository.save(referenceShelfImage);
+            }
+
+            this.cameraRepository.delete(camera);
         }
 
-        this.cameraRepository.deleteById(cameraId);
     }
 
 }
