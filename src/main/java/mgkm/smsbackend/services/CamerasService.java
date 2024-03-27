@@ -42,20 +42,16 @@ public class CamerasService {
         return this.cameraRepository.findById(cameraId).orElse(null);
     }
 
-    public void deleteCamera(Integer cameraId) {
+    public void deleteCamera(Camera camera) {
 
-        Camera camera = this.cameraRepository.findById(cameraId).orElse(null);
+        ShelfImage referenceShelfImage = this.shelfImageRepository.findByReferencedCamera(camera);
 
-        if(camera != null) {
-            ShelfImage referenceShelfImage = this.shelfImageRepository.findByReferencedCamera(camera);
-
-            if (referenceShelfImage != null) {
-                referenceShelfImage.setReferencedCamera(null);
-                this.shelfImageRepository.save(referenceShelfImage);
-            }
-
-            this.cameraRepository.delete(camera);
+        if (referenceShelfImage != null) {
+            referenceShelfImage.setReferencedCamera(null);
+            this.shelfImageRepository.save(referenceShelfImage);
         }
+
+        this.cameraRepository.delete(camera);
 
     }
 

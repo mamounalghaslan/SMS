@@ -23,11 +23,13 @@ public class ProductsController extends BaseController {
     }
 
     @PostMapping("/addNewProduct")
+    @ResponseStatus(code = HttpStatus.CREATED)
     public Product addNewProduct(@RequestBody Product product) {
         return this.productsService.addNewProduct(product);
     }
 
     @PostMapping("/{productId}/addProductDisplayImage")
+    @ResponseStatus(code = HttpStatus.ACCEPTED)
     public void addProductDisplayImage(@PathVariable("productId") Integer productId,
                                        @RequestParam(value = "imageFile") MultipartFile displayImageFile)
             throws IOException {
