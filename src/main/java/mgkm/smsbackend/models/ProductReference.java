@@ -1,5 +1,6 @@
 package mgkm.smsbackend.models;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.annotation.Nonnull;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -27,15 +28,19 @@ public class ProductReference {
     private String imagePath;
 
     @Nonnull
-    private Float xCenter;
+    @JsonProperty("x1")
+    private Float x1;
 
     @Nonnull
-    private Float yCenter;
+    @JsonProperty("y1")
+    private Float y1;
 
     @Nonnull
-    private Float width;
+    @JsonProperty("x2")
+    private Float x2;
 
     @Nonnull
-    private Float height;
+    @JsonProperty("y2")
+    private Float y2;
 
 }

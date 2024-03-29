@@ -1,7 +1,9 @@
 package mgkm.smsbackend.services;
 
 import mgkm.smsbackend.models.Camera;
+import mgkm.smsbackend.models.ProductReference;
 import mgkm.smsbackend.models.ShelfImage;
+import mgkm.smsbackend.repositories.ProductReferenceRepository;
 import mgkm.smsbackend.repositories.ShelfImageRepository;
 import org.apache.tomcat.util.http.fileupload.FileUtils;
 import org.springframework.beans.factory.annotation.Value;
@@ -22,16 +24,24 @@ public class ShelfImageService extends ImageBase64Service {
 
     private final ShelfImageRepository shelfImageRepository;
 
-    public ShelfImageService(ShelfImageRepository shelfImageRepository) {
+    private final ProductReferenceRepository productReferenceRepository;
+
+    public ShelfImageService(ShelfImageRepository shelfImageRepository,
+                             ProductReferenceRepository productReferenceRepository) {
         this.shelfImageRepository = shelfImageRepository;
+        this.productReferenceRepository = productReferenceRepository;
     }
 
     private String getShelfImagesUrl(Integer shelfImageId) {
         return this.rootImagesPath + "/shelfImages/" + shelfImageId + "/";
     }
 
-    public ShelfImage getShelfImage(Integer shelfImageId) {
-        return this.shelfImageRepository.findById(shelfImageId).orElse(null);
+    public ShelfImage getShelfImage(Integer shelfImageId) throws IOException {
+        ShelfImage shelfImage = this.shelfImageRepository.findById(shelfImageId).orElse(null);
+        if(shelfImage != null) {
+            shelfImage.setImageFileBase64(loadImageAsBase64(shelfImage.getImagePath()));
+        }
+        return shelfImage;
     }
 
     public List<ShelfImage> getAllShelfImages() {
@@ -80,6 +90,10 @@ public class ShelfImageService extends ImageBase64Service {
 
             this.shelfImageRepository.delete(shelfImage);
         }
+    }
+
+    public List<ProductReference> getProductReferencesByShelfImageId(Integer shelfImageId) {
+        return (List<ProductReference>) this.productReferenceRepository.findAllByShelfImage_SystemId(shelfImageId);
     }
 
 }
