@@ -16,7 +16,7 @@ import java.nio.file.Paths;
 import java.util.List;
 
 @Service
-public class ProductsService extends ImageBase64Service {
+public class ProductsService {
 
     @Value("${sms-root-images-path}")
     private String rootImagesPath;
@@ -39,12 +39,8 @@ public class ProductsService extends ImageBase64Service {
         return this.rootImagesPath + "/productsImages/" + productId + "/";
     }
 
-    public List<Product> getAllProducts() throws IOException {
-        List<Product> products = (List<Product>) this.productRepository.findAll();
-        for(Product product : products) {
-            product.setDisplayImageFileBase64(loadImageAsBase64(product.getDisplayImagePath()));
-        }
-        return products;
+    public List<Product> getAllProducts() {
+        return (List<Product>) this.productRepository.findAll();
     }
 
     public Product getProduct(Integer productId) {
@@ -67,11 +63,10 @@ public class ProductsService extends ImageBase64Service {
             FileUtils.cleanDirectory(path.toFile());
         }
 
-        String productDisplayImageUri = productDisplayImageUrl + productDisplayImageFile.getOriginalFilename();
+        Files.write(Paths.get(productDisplayImageUrl + productDisplayImageFile.getOriginalFilename()),
+                productDisplayImageFile.getBytes());
 
-        Files.write(Paths.get(productDisplayImageUri), productDisplayImageFile.getBytes());
-
-        product.setDisplayImagePath(productDisplayImageUri);
+        product.setImageFileName(productDisplayImageFile.getOriginalFilename());
 
         this.productRepository.save(product);
 

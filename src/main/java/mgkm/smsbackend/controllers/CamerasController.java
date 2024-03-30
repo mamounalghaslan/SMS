@@ -58,7 +58,7 @@ public class CamerasController extends BaseController {
     }
 
     @GetMapping("/getCameraReferenceImage/{cameraId}")
-    public ShelfImage getCameraReferenceImage(@PathVariable Integer cameraId) throws IOException {
+    public ShelfImage getCameraReferenceImage(@PathVariable Integer cameraId) {
         return this.shelfImageService.getShelfImageByCamera(this.camerasService.getCamera(cameraId));
     }
 

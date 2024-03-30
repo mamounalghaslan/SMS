@@ -25,8 +25,6 @@ public class ShelfImage {
     @OneToOne(targetEntity = Camera.class)
     private Camera referencedCamera;
 
-    private String imagePath;
-
-    private String imageFileBase64;
+    private String imageFileName;
 
 }

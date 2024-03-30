@@ -18,7 +18,7 @@ public class ProductsController extends BaseController {
     private final ProductsService productsService;
 
     @GetMapping("/allProducts")
-    public List<Product> getAllProducts() throws IOException {
+    public List<Product> getAllProducts() {
         return this.productsService.getAllProducts();
     }
 

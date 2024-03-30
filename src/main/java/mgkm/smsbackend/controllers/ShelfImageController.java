@@ -6,7 +6,6 @@ import mgkm.smsbackend.models.ShelfImage;
 import mgkm.smsbackend.services.ShelfImageService;
 import org.springframework.web.bind.annotation.*;
 
-import java.io.IOException;
 import java.util.List;
 
 @RestController
@@ -27,7 +26,7 @@ public class ShelfImageController extends BaseController {
     }
 
     @GetMapping("/{shelfImageId}")
-    public ShelfImage getShelfImage(@PathVariable Integer shelfImageId) throws IOException {
+    public ShelfImage getShelfImage(@PathVariable Integer shelfImageId) {
         return this.shelfImageService.getShelfImage(shelfImageId);
     }
 

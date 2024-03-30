@@ -5,6 +5,8 @@ import mgkm.smsbackend.models.ProductReference;
 import mgkm.smsbackend.models.ShelfImage;
 import mgkm.smsbackend.repositories.ProductReferenceRepository;
 import mgkm.smsbackend.repositories.ShelfImageRepository;
+import mgkm.smsbackend.utilities.ProductReferencesBoxesJSONReader;
+import mgkm.smsbackend.utilities.PythonCaller;
 import org.apache.tomcat.util.http.fileupload.FileUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -17,7 +19,7 @@ import java.nio.file.Paths;
 import java.util.List;
 
 @Service
-public class ShelfImageService extends ImageBase64Service {
+public class ShelfImageService {
 
     @Value("${sms-root-images-path}")
     private String rootImagesPath;
@@ -32,31 +34,35 @@ public class ShelfImageService extends ImageBase64Service {
         this.productReferenceRepository = productReferenceRepository;
     }
 
-    private String getShelfImagesUrl(Integer shelfImageId) {
+    public String getShelfImagesUrl(Integer shelfImageId) {
         return this.rootImagesPath + "/shelfImages/" + shelfImageId + "/";
     }
 
-    public ShelfImage getShelfImage(Integer shelfImageId) throws IOException {
-        ShelfImage shelfImage = this.shelfImageRepository.findById(shelfImageId).orElse(null);
-        if(shelfImage != null) {
-            shelfImage.setImageFileBase64(loadImageAsBase64(shelfImage.getImagePath()));
-        }
-        return shelfImage;
+    public ShelfImage getShelfImage(Integer shelfImageId) {
+        return this.shelfImageRepository.findById(shelfImageId).orElse(null);
     }
 
     public List<ShelfImage> getAllShelfImages() {
         return (List<ShelfImage>) this.shelfImageRepository.findAll();
     }
 
-    public ShelfImage getShelfImageByCamera(Camera camera) throws IOException {
-        ShelfImage shelfImage = this.shelfImageRepository.findByReferencedCamera(camera);
-        if(shelfImage != null) {
-            shelfImage.setImageFileBase64(loadImageAsBase64(shelfImage.getImagePath()));
-        }
-        return shelfImage;
+    public ShelfImage getShelfImageByCamera(Camera camera) {
+        return this.shelfImageRepository.findByReferencedCamera_SystemId(camera.getSystemId());
     }
 
     public ShelfImage addNewShelfImage(ShelfImage shelfImage) {
+
+        ShelfImage previousShelfImage = null;
+        if (shelfImage.getReferencedCamera() != null) {
+            previousShelfImage = this.shelfImageRepository.findByReferencedCamera_SystemId(
+                    shelfImage.getReferencedCamera().getSystemId());
+        }
+
+        if(previousShelfImage != null) {
+            previousShelfImage.setReferencedCamera(null);
+            this.shelfImageRepository.save(previousShelfImage);
+        }
+
         return this.shelfImageRepository.save(shelfImage);
     }
 
@@ -72,22 +78,34 @@ public class ShelfImageService extends ImageBase64Service {
             FileUtils.cleanDirectory(path.toFile());
         }
 
-        String shelfImageUri = shelfImageUrl + shelfImageFile.getOriginalFilename();
+        Files.write(Paths.get(shelfImageUrl + shelfImageFile.getOriginalFilename()), shelfImageFile.getBytes());
 
-        Files.write(Paths.get(shelfImageUri), shelfImageFile.getBytes());
-
-        shelfImage.setImagePath(shelfImageUri);
+        shelfImage.setImageFileName(shelfImageFile.getOriginalFilename());
 
         this.shelfImageRepository.save(shelfImage);
+
+        // ----------------------------------------------
+
+        PythonCaller.callPython(
+                "F:/SMS/sms-backend/src/main/python/run-predict.py",
+                "F:/SMS/sms-backend/src/main/python/yolov9c.pt",
+                shelfImageUrl + shelfImageFile.getOriginalFilename(),
+                "F:/SMS/sms-backend/src/main/python/results.json"
+        );
+
+        List<ProductReference> productReferences = ProductReferencesBoxesJSONReader.readProductReferencesBoxesJSON(
+                "F:/SMS/sms-backend/src/main/python/results.json"
+        );
+
+        for(ProductReference productReference : productReferences) {
+            productReference.setShelfImage(shelfImage);
+            this.productReferenceRepository.save(productReference);
+        }
 
     }
 
     public void deleteShelfImage(ShelfImage shelfImage) {
-
         if(shelfImage != null) {
-
-            // TODO: delete the product references
-
             this.shelfImageRepository.delete(shelfImage);
         }
     }

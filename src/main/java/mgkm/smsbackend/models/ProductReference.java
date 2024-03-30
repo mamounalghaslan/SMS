@@ -25,7 +25,7 @@ public class ProductReference {
     @ManyToOne(targetEntity = Product.class)
     private Product product;
 
-    private String imagePath;
+    private String imageFileName;
 
     @Nonnull
     @JsonProperty("x1")
