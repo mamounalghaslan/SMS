@@ -16,6 +16,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Comparator;
 import java.util.List;
 
 @Service
@@ -111,7 +112,19 @@ public class ShelfImageService {
     }
 
     public List<ProductReference> getProductReferencesByShelfImageId(Integer shelfImageId) {
-        return (List<ProductReference>) this.productReferenceRepository.findAllByShelfImage_SystemId(shelfImageId);
+        List<ProductReference> productReferences =
+                (List<ProductReference>) this.productReferenceRepository.findAllByShelfImage_SystemId(shelfImageId);
+
+        // bin the product references into 5 bins based on their y-coordinate
+        // for each bin, sort the product references based on their x-coordinate
+        productReferences.sort(Comparator.comparing(ProductReference::getY1));
+        int binSize = productReferences.size() / 5;
+        for(int i = 0; i < 5; i++) {
+            List<ProductReference> bin = productReferences.subList(i * binSize, (i + 1) * binSize);
+            bin.sort(Comparator.comparing(ProductReference::getX1));
+        }
+
+        return productReferences;
     }
 
 }
