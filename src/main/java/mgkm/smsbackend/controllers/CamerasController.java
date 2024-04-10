@@ -53,8 +53,9 @@ public class CamerasController extends BaseController {
     @ResponseStatus(code = HttpStatus.ACCEPTED)
     public void addShelfImageFile(@PathVariable("shelfImageId") Integer shelfImageId,
                                   @RequestParam(value = "imageFile") MultipartFile shelfImageFile)
-            throws IOException {
-        this.shelfImageService.addShelfImageFile(this.shelfImageService.getShelfImage(shelfImageId), shelfImageFile);
+    throws IOException {
+        this.shelfImageService.addShelfImageFile(
+                this.shelfImageService.getShelfImage(shelfImageId), shelfImageFile);
     }
 
     @GetMapping("/getCameraReferenceImage/{cameraId}")

@@ -25,6 +25,15 @@ public class ShelfImageService {
     @Value("${sms-root-images-path}")
     private String rootImagesPath;
 
+    @Value("${detection-model-path}")
+    private String detectionModelLocation;
+
+    @Value("${detection-predict-script-path}")
+    private String detectionPredictScriptLocation;
+
+    @Value("${detection-results-path}")
+    private String detectionResultsLocation;
+
     private final ShelfImageRepository shelfImageRepository;
 
     private final ProductReferenceRepository productReferenceRepository;
@@ -88,28 +97,28 @@ public class ShelfImageService {
         // ----------------------------------------------
 
         PythonCaller.callPython(
-                "F:/SMS/sms-backend/src/main/python/run-predict.py",
-                "F:/SMS/sms-backend/src/main/python/yolov9c.pt",
+                detectionPredictScriptLocation,
+                detectionModelLocation,
                 shelfImageUrl + shelfImageFile.getOriginalFilename(),
-                "F:/SMS/sms-backend/src/main/python/results.json"
+                detectionResultsLocation
         );
 
         List<ProductReference> productReferences = ProductReferencesBoxesJSONReader.readProductReferencesBoxesJSON(
-                "F:/SMS/sms-backend/src/main/python/results.json"
+                detectionResultsLocation
         );
 
         for(ProductReference productReference : productReferences) {
             productReference.setShelfImage(shelfImage);
-            this.productReferenceRepository.save(productReference);
         }
 
+        this.productReferenceRepository.saveAll(productReferences);
     }
 
-    public void deleteShelfImage(ShelfImage shelfImage) {
-        if(shelfImage != null) {
-            this.shelfImageRepository.delete(shelfImage);
-        }
-    }
+//    public void deleteShelfImage(ShelfImage shelfImage) {
+//        if(shelfImage != null) {
+//            this.shelfImageRepository.delete(shelfImage);
+//        }
+//    }
 
     public List<ProductReference> getProductReferencesByShelfImageId(Integer shelfImageId) {
         List<ProductReference> productReferences =
