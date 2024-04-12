@@ -2,6 +2,7 @@ package mgkm.smsbackend.services;
 
 import mgkm.smsbackend.models.Camera;
 import mgkm.smsbackend.models.ProductReference;
+import mgkm.smsbackend.models.ProductReferenceParameters;
 import mgkm.smsbackend.models.ShelfImage;
 import mgkm.smsbackend.repositories.ProductReferenceRepository;
 import mgkm.smsbackend.repositories.ShelfImageRepository;
@@ -134,6 +135,16 @@ public class ShelfImageService {
         }
 
         return productReferences;
+    }
+
+    public void processProductReferences(ProductReferenceParameters parameters) {
+
+        this.productReferenceRepository.saveAll(parameters.getInserts());
+
+        this.productReferenceRepository.saveAll(parameters.getUpdates());
+
+        this.productReferenceRepository.deleteAll(parameters.getDeletes());
+
     }
 
 }
