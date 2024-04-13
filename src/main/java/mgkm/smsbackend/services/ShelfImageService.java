@@ -6,10 +6,9 @@ import mgkm.smsbackend.models.ProductReferenceParameters;
 import mgkm.smsbackend.models.ShelfImage;
 import mgkm.smsbackend.repositories.ProductReferenceRepository;
 import mgkm.smsbackend.repositories.ShelfImageRepository;
-import mgkm.smsbackend.utilities.ProductReferencesBoxesJSONReader;
-import mgkm.smsbackend.utilities.PythonCaller;
+import mgkm.smsbackend.utilities.ImageLocator;
 import org.apache.tomcat.util.http.fileupload.FileUtils;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -23,21 +22,12 @@ import java.util.List;
 @Service
 public class ShelfImageService {
 
-    @Value("${sms-root-images-path}")
-    private String rootImagesPath;
-
-    @Value("${detection-model-path}")
-    private String detectionModelLocation;
-
-    @Value("${detection-predict-script-path}")
-    private String detectionPredictScriptLocation;
-
-    @Value("${detection-results-path}")
-    private String detectionResultsLocation;
-
     private final ShelfImageRepository shelfImageRepository;
 
     private final ProductReferenceRepository productReferenceRepository;
+
+    @Autowired
+    private ModelService modelService;
 
     public ShelfImageService(ShelfImageRepository shelfImageRepository,
                              ProductReferenceRepository productReferenceRepository) {
@@ -45,16 +35,17 @@ public class ShelfImageService {
         this.productReferenceRepository = productReferenceRepository;
     }
 
-    public String getShelfImagesUrl(Integer shelfImageId) {
-        return this.rootImagesPath + "/shelfImages/" + shelfImageId + "/";
-    }
-
     public ShelfImage getShelfImage(Integer shelfImageId) {
         return this.shelfImageRepository.findById(shelfImageId).orElse(null);
     }
 
     public List<ShelfImage> getAllShelfImages() {
-        return (List<ShelfImage>) this.shelfImageRepository.findAll();
+
+        List<ShelfImage> shelfImages = (List<ShelfImage>) this.shelfImageRepository.findAll();
+
+        shelfImages.sort(Comparator.comparing(ShelfImage::getCaptureDate).reversed());
+
+        return shelfImages;
     }
 
     public ShelfImage getShelfImageByCamera(Camera camera) {
@@ -79,40 +70,42 @@ public class ShelfImageService {
 
     public void addShelfImageFile(ShelfImage shelfImage, MultipartFile shelfImageFile) throws IOException {
 
-        String shelfImageUrl = this.getShelfImagesUrl(shelfImage.getSystemId());
+        try {
 
-        Path path = Paths.get(shelfImageUrl);
+            // 1. Save the shelf image
+            String shelfImageUrl = ImageLocator.getShelfImagesUrl(shelfImage.getSystemId());
 
-        if(!Files.exists(path)) {
-            Files.createDirectories(path);
-        } else {
-            FileUtils.cleanDirectory(path.toFile());
+            Path path = Paths.get(shelfImageUrl);
+
+            if(!Files.exists(path)) {
+                Files.createDirectories(path);
+            } else {
+                FileUtils.cleanDirectory(path.toFile());
+            }
+
+            Files.write(Paths.get(shelfImageUrl + shelfImageFile.getOriginalFilename()), shelfImageFile.getBytes());
+
+            shelfImage.setImageFileName(shelfImageFile.getOriginalFilename());
+
+            this.shelfImageRepository.save(shelfImage);
+
+            // 2. Run the detection model
+            List<ProductReference> productReferences =
+                    modelService.detectProducts(
+                            shelfImageUrl + shelfImageFile.getOriginalFilename());
+
+            for(ProductReference productReference : productReferences) {
+                productReference.setShelfImage(shelfImage);
+            }
+
+            this.productReferenceRepository.saveAll(productReferences);
+
+        } catch (Exception e) {
+
+            this.shelfImageRepository.delete(shelfImage);
+
+            throw e;
         }
-
-        Files.write(Paths.get(shelfImageUrl + shelfImageFile.getOriginalFilename()), shelfImageFile.getBytes());
-
-        shelfImage.setImageFileName(shelfImageFile.getOriginalFilename());
-
-        this.shelfImageRepository.save(shelfImage);
-
-        // ----------------------------------------------
-
-        PythonCaller.callPython(
-                detectionPredictScriptLocation,
-                detectionModelLocation,
-                shelfImageUrl + shelfImageFile.getOriginalFilename(),
-                detectionResultsLocation
-        );
-
-        List<ProductReference> productReferences = ProductReferencesBoxesJSONReader.readProductReferencesBoxesJSON(
-                detectionResultsLocation
-        );
-
-        for(ProductReference productReference : productReferences) {
-            productReference.setShelfImage(shelfImage);
-        }
-
-        this.productReferenceRepository.saveAll(productReferences);
     }
 
 //    public void deleteShelfImage(ShelfImage shelfImage) {

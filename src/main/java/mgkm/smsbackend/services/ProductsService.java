@@ -4,8 +4,8 @@ import mgkm.smsbackend.models.Product;
 import mgkm.smsbackend.models.ProductReference;
 import mgkm.smsbackend.repositories.ProductReferenceRepository;
 import mgkm.smsbackend.repositories.ProductRepository;
+import mgkm.smsbackend.utilities.ImageLocator;
 import org.apache.tomcat.util.http.fileupload.FileUtils;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -18,9 +18,6 @@ import java.util.List;
 @Service
 public class ProductsService {
 
-    @Value("${sms-root-images-path}")
-    private String rootImagesPath;
-
     private final ProductRepository productRepository;
 
     private final ProductReferenceRepository productReferenceRepository;
@@ -29,14 +26,6 @@ public class ProductsService {
                            ProductReferenceRepository productReferenceRepository) {
         this.productRepository = productRepository;
         this.productReferenceRepository = productReferenceRepository;
-    }
-
-    private String getProductsDisplayImagesUrl(Integer productId) {
-        return this.rootImagesPath + "/productsDisplayImages/" + productId + "/";
-    }
-
-    private String getProductsImagesUrl(Integer productId) {
-        return this.rootImagesPath + "/productsImages/" + productId + "/";
     }
 
     public List<Product> getAllProducts() {
@@ -53,7 +42,7 @@ public class ProductsService {
 
     public void addProductDisplayImage(Product product, MultipartFile productDisplayImageFile) throws IOException {
 
-        String productDisplayImageUrl = this.getProductsDisplayImagesUrl(product.getSystemId());
+        String productDisplayImageUrl = ImageLocator.getProductsDisplayImagesUrl(product.getSystemId());
 
         Path path = Paths.get(productDisplayImageUrl);
 
@@ -75,7 +64,7 @@ public class ProductsService {
     public void deleteProduct(Product product) throws IOException {
 
         // delete display image
-        String productDisplayImageUrl = this.getProductsDisplayImagesUrl(product.getSystemId());
+        String productDisplayImageUrl = ImageLocator.getProductsDisplayImagesUrl(product.getSystemId());
         Path displayImagePath = Paths.get(productDisplayImageUrl);
         if(Files.exists(displayImagePath)) {
             FileUtils.cleanDirectory(displayImagePath.toFile());
@@ -83,7 +72,7 @@ public class ProductsService {
         }
 
         // delete reference images
-        String productsReferencesImageUrl = this.getProductsImagesUrl(product.getSystemId());
+        String productsReferencesImageUrl = ImageLocator.getProductsImagesUrl(product.getSystemId());
         Path productImagesPath = Paths.get(productsReferencesImageUrl);
         if(Files.exists(productImagesPath)) {
             FileUtils.cleanDirectory(productImagesPath.toFile());
