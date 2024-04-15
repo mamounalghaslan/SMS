@@ -6,16 +6,14 @@ import mgkm.smsbackend.models.ProductReferenceParameters;
 import mgkm.smsbackend.models.ShelfImage;
 import mgkm.smsbackend.repositories.ProductReferenceRepository;
 import mgkm.smsbackend.repositories.ShelfImageRepository;
-import mgkm.smsbackend.utilities.ImageLocator;
-import org.apache.tomcat.util.http.fileupload.FileUtils;
+import mgkm.smsbackend.utilities.ImageUtilities;
+import org.apache.commons.imaging.ImageReadException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.awt.image.BufferedImage;
+import java.io.*;
 import java.util.Comparator;
 import java.util.List;
 
@@ -68,28 +66,22 @@ public class ShelfImageService {
         return this.shelfImageRepository.save(shelfImage);
     }
 
-    public void addShelfImageFile(ShelfImage shelfImage, MultipartFile shelfImageFile) throws IOException {
+    public void addShelfImageFile(ShelfImage shelfImage, MultipartFile shelfImageFile) throws IOException, ImageReadException {
 
         try {
 
-            // 1. Save the shelf image
-            String shelfImageUrl = ImageLocator.getShelfImagesUrl(shelfImage.getSystemId());
+            // 1. Save the shelf image file
 
-            Path path = Paths.get(shelfImageUrl);
+            String shelfImageUrl = ImageUtilities.getShelfImagesUrl(shelfImage.getSystemId());
 
-            if(!Files.exists(path)) {
-                Files.createDirectories(path);
-            } else {
-                FileUtils.cleanDirectory(path.toFile());
-            }
-
-            Files.write(Paths.get(shelfImageUrl + shelfImageFile.getOriginalFilename()), shelfImageFile.getBytes());
+            ImageUtilities.saveMultipartFileImage(shelfImageUrl, shelfImageFile);
 
             shelfImage.setImageFileName(shelfImageFile.getOriginalFilename());
 
             this.shelfImageRepository.save(shelfImage);
 
             // 2. Run the detection model
+
             List<ProductReference> productReferences =
                     modelService.detectProducts(
                             shelfImageUrl + shelfImageFile.getOriginalFilename());
@@ -100,12 +92,55 @@ public class ShelfImageService {
 
             this.productReferenceRepository.saveAll(productReferences);
 
+            productReferences = (List<ProductReference>) this.productReferenceRepository.findAllByShelfImage_SystemId(shelfImage.getSystemId());
+
+            // 3. Extract and save the product reference images
+
+            extractAndSaveProductReferences(shelfImageFile, productReferences);
+
+            this.productReferenceRepository.saveAll(productReferences);
+
         } catch (Exception e) {
+
+            // find a way to revert the reference image resetting
+            // happening in addNewShelfImage method
+
+            this.productReferenceRepository.deleteAll(
+                    this.productReferenceRepository.findAllByShelfImage_SystemId(shelfImage.getSystemId()));
 
             this.shelfImageRepository.delete(shelfImage);
 
             throw e;
         }
+    }
+
+    private void extractAndSaveProductReferences(
+            MultipartFile shelfImageFile, List<ProductReference> productReferences) throws IOException, ImageReadException {
+
+        BufferedImage bufferedShelfImage = ImageUtilities.getBufferedImage(shelfImageFile);
+
+        for(ProductReference productReference : productReferences) {
+
+            String productReferenceImageUrl =
+                    ImageUtilities.getProductReferenceImagesUrl(productReference.getSystemId());
+
+            ImageUtilities.purgeOrCreateDirectory(productReferenceImageUrl);
+
+            String productReferenceImageFileName = productReference.getSystemId() + ".jpg";
+
+            ImageUtilities.extractAndSaveSubImage(
+                    bufferedShelfImage,
+                    productReferenceImageUrl + productReferenceImageFileName,
+                    productReference.getX1().intValue(),
+                    productReference.getY1().intValue(),
+                    productReference.getX2().intValue(),
+                    productReference.getY2().intValue()
+            );
+
+            productReference.setImageFileName(productReferenceImageFileName);
+
+        }
+
     }
 
 //    public void deleteShelfImage(ShelfImage shelfImage) {
@@ -131,6 +166,8 @@ public class ShelfImageService {
     }
 
     public void processProductReferences(ProductReferenceParameters parameters) {
+
+        // TODO: save images files and delete old ones for each
 
         this.productReferenceRepository.saveAll(parameters.getInserts());
 

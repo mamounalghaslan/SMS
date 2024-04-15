@@ -5,6 +5,7 @@ import mgkm.smsbackend.models.Camera;
 import mgkm.smsbackend.models.ShelfImage;
 import mgkm.smsbackend.services.CamerasService;
 import mgkm.smsbackend.services.ShelfImageService;
+import org.apache.commons.imaging.ImageReadException;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -53,7 +54,7 @@ public class CamerasController extends BaseController {
     @ResponseStatus(code = HttpStatus.ACCEPTED)
     public void addShelfImageFile(@PathVariable("shelfImageId") Integer shelfImageId,
                                   @RequestParam(value = "imageFile") MultipartFile shelfImageFile)
-    throws IOException {
+            throws IOException, ImageReadException {
         this.shelfImageService.addShelfImageFile(
                 this.shelfImageService.getShelfImage(shelfImageId), shelfImageFile);
     }

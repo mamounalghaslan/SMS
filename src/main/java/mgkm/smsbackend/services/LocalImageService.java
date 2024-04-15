@@ -1,6 +1,6 @@
 package mgkm.smsbackend.services;
 
-import mgkm.smsbackend.utilities.ImageLocator;
+import mgkm.smsbackend.utilities.ImageUtilities;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Service;
@@ -18,16 +18,14 @@ public class LocalImageService {
     public Resource getImage(String imagePath,
                              Integer objectSystemId,
                              String fileName) throws MalformedURLException {
-
-        Path path = Paths.get(ImageLocator.getImage(imagePath, objectSystemId, fileName));
+        Path path = Paths.get(ImageUtilities.getImageUrl(imagePath, objectSystemId, fileName));
         return new UrlResource(path.toUri());
-
     }
 
     public String getImageResourceType(String imagePath,
                                        Integer objectSystemId,
                                        String fileName) throws IOException {
-        Path path = Paths.get(ImageLocator.getImageResourceType(imagePath, objectSystemId, fileName));
+        Path path = Paths.get(ImageUtilities.getImageUrl(imagePath, objectSystemId, fileName));
         return Files.probeContentType(path);
     }
 
