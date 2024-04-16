@@ -208,4 +208,24 @@ public class ShelfImageService {
 
     }
 
+    public void deleteShelfImage(Integer shelfImageId) throws IOException {
+        ShelfImage shelfImage = this.shelfImageRepository.findById(shelfImageId).orElse(null);
+
+        if(shelfImage != null) {
+            List<ProductReference> productReferences = (List<ProductReference>)
+                    this.productReferenceRepository.findAllByShelfImage_SystemId(shelfImageId);
+
+            for(ProductReference productReference : productReferences) {
+                ImageUtilities.purgeDirectory(
+                        ImageUtilities.getProductReferenceImagesUrl(productReference.getSystemId())
+                );
+            }
+
+            this.productReferenceRepository.deleteAll(productReferences);
+
+            ImageUtilities.purgeDirectory(ImageUtilities.getShelfImagesUrl(shelfImageId));
+            this.shelfImageRepository.delete(shelfImage);
+        }
+    }
+
 }

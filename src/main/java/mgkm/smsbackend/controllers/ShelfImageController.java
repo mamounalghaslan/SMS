@@ -41,4 +41,10 @@ public class ShelfImageController extends BaseController {
         this.shelfImageService.processProductReferences(shelfImageId, parameters);
     }
 
+    @DeleteMapping("/{shelfImageId}")
+    @ResponseStatus(code = HttpStatus.OK)
+    public void deleteShelfImage(@PathVariable Integer shelfImageId) throws IOException {
+        this.shelfImageService.deleteShelfImage(shelfImageId);
+    }
+
 }
