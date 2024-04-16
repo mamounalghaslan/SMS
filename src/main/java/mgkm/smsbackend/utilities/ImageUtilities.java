@@ -54,16 +54,17 @@ public class ImageUtilities {
 
     }
 
-    public static BufferedImage getBufferedImage(MultipartFile multipartFile) throws IOException, ImageReadException {
-        InputStream inputStream = new ByteArrayInputStream(multipartFile.getBytes());
-        BufferedImage bufferedImage = ImageIO.read(inputStream);
+    public static BufferedImage getBufferedImage(String imageUrl) throws IOException, ImageReadException {
 
-        // Read metadata to determine if rotation is needed
-        ImageMetadata metadata = Imaging.getMetadata(multipartFile.getBytes());
+        File imageFile = new File(imageUrl);
+
+        BufferedImage bufferedImage = ImageIO.read(imageFile);
+
+        ImageMetadata metadata = Imaging.getMetadata(imageFile);
+
         if (metadata instanceof JpegImageMetadata jpegMetadata) {
             TiffField orientationField = jpegMetadata.findEXIFValueWithExactMatch(TiffTagConstants.TIFF_TAG_ORIENTATION);
             if (orientationField != null) {
-                // Correctly cast the value to Short and retrieve its integer value
                 short orientation = (Short) orientationField.getValue();
                 bufferedImage = switch (orientation) {
                     case 3 -> rotateImage(bufferedImage, 180);
@@ -122,10 +123,9 @@ public class ImageUtilities {
 
         File outputFile = new File(outputImageUrl);
 
-        ImageIO.write(
-                croppedImage,
-                "jpg",
-                new FileOutputStream(outputFile));
+        try (FileOutputStream fos = new FileOutputStream(outputFile)) {
+            ImageIO.write(croppedImage, "jpg", fos);
+        }
 
     }
 
@@ -137,6 +137,17 @@ public class ImageUtilities {
             Files.createDirectories(path);
         } else {
             FileUtils.cleanDirectory(path.toFile());
+        }
+
+    }
+
+    public static void purgeDirectory(String url) throws IOException {
+
+        Path path = Paths.get(url);
+
+        if(Files.exists(path)) {
+            FileUtils.cleanDirectory(path.toFile());
+            Files.delete(path);
         }
 
     }

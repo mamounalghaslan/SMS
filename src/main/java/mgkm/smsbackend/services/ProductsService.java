@@ -5,14 +5,10 @@ import mgkm.smsbackend.models.ProductReference;
 import mgkm.smsbackend.repositories.ProductReferenceRepository;
 import mgkm.smsbackend.repositories.ProductRepository;
 import mgkm.smsbackend.utilities.ImageUtilities;
-import org.apache.tomcat.util.http.fileupload.FileUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.List;
 
 @Service
@@ -54,13 +50,7 @@ public class ProductsService {
 
     public void deleteProduct(Product product) throws IOException {
 
-        // delete display image
-        String productDisplayImageUrl = ImageUtilities.getProductsDisplayImagesUrl(product.getSystemId());
-        Path displayImagePath = Paths.get(productDisplayImageUrl);
-        if(Files.exists(displayImagePath)) {
-            FileUtils.cleanDirectory(displayImagePath.toFile());
-            Files.delete(displayImagePath);
-        }
+        ImageUtilities.purgeDirectory(ImageUtilities.getProductsDisplayImagesUrl(product.getSystemId()));
 
         // reset product references to empty
         List<ProductReference> productReferences =

@@ -92,11 +92,14 @@ public class ShelfImageService {
 
             this.productReferenceRepository.saveAll(productReferences);
 
-            productReferences = (List<ProductReference>) this.productReferenceRepository.findAllByShelfImage_SystemId(shelfImage.getSystemId());
+            productReferences = (List<ProductReference>)
+                    this.productReferenceRepository.findAllByShelfImage_SystemId(shelfImage.getSystemId());
 
             // 3. Extract and save the product reference images
 
-            extractAndSaveProductReferences(shelfImageFile, productReferences);
+            extractAndSaveProductReferences(
+                    ImageUtilities.getBufferedImage(shelfImageUrl + shelfImageFile.getOriginalFilename()),
+                    productReferences);
 
             this.productReferenceRepository.saveAll(productReferences);
 
@@ -115,9 +118,7 @@ public class ShelfImageService {
     }
 
     private void extractAndSaveProductReferences(
-            MultipartFile shelfImageFile, List<ProductReference> productReferences) throws IOException, ImageReadException {
-
-        BufferedImage bufferedShelfImage = ImageUtilities.getBufferedImage(shelfImageFile);
+            BufferedImage bufferedShelfImage, List<ProductReference> productReferences) throws IOException {
 
         for(ProductReference productReference : productReferences) {
 
@@ -143,11 +144,7 @@ public class ShelfImageService {
 
     }
 
-//    public void deleteShelfImage(ShelfImage shelfImage) {
-//        if(shelfImage != null) {
-//            this.shelfImageRepository.delete(shelfImage);
-//        }
-//    }
+
 
     public List<ProductReference> getProductReferencesByShelfImageId(Integer shelfImageId) {
         List<ProductReference> productReferences =
@@ -165,15 +162,49 @@ public class ShelfImageService {
         return productReferences;
     }
 
-    public void processProductReferences(ProductReferenceParameters parameters) {
+    public void processProductReferences(Integer shelfImageId, ProductReferenceParameters parameters) throws IOException, ImageReadException {
 
-        // TODO: save images files and delete old ones for each
+        ShelfImage shelfImage = this.shelfImageRepository.findById(shelfImageId).orElse(null);
 
-        this.productReferenceRepository.saveAll(parameters.getInserts());
+        // read the image file
 
-        this.productReferenceRepository.saveAll(parameters.getUpdates());
+        String shelfImageUrl = ImageUtilities.getShelfImagesUrl(shelfImageId);
 
-        this.productReferenceRepository.deleteAll(parameters.getDeletes());
+        if(shelfImage != null) {
+
+            // Inserts ---------------------------------------------------------
+
+            this.productReferenceRepository.saveAll(parameters.getInserts());
+
+            extractAndSaveProductReferences(
+                    ImageUtilities.getBufferedImage(shelfImageUrl + shelfImage.getImageFileName()),
+                    parameters.getInserts());
+
+            this.productReferenceRepository.saveAll(parameters.getInserts());
+
+            // Updates ---------------------------------------------------------
+
+            this.productReferenceRepository.saveAll(parameters.getUpdates());
+
+            extractAndSaveProductReferences(
+                    ImageUtilities.getBufferedImage(shelfImageUrl + shelfImage.getImageFileName()),
+                    parameters.getUpdates());
+
+            this.productReferenceRepository.saveAll(parameters.getUpdates());
+
+            // Deletes ---------------------------------------------------------
+
+            for(ProductReference productReference: parameters.getDeletes()) {
+
+                ImageUtilities.purgeDirectory(
+                        ImageUtilities.getProductReferenceImagesUrl(productReference.getSystemId())
+                );
+
+            }
+
+            this.productReferenceRepository.deleteAll(parameters.getDeletes());
+
+        }
 
     }
 

@@ -5,9 +5,11 @@ import mgkm.smsbackend.models.ProductReference;
 import mgkm.smsbackend.models.ProductReferenceParameters;
 import mgkm.smsbackend.models.ShelfImage;
 import mgkm.smsbackend.services.ShelfImageService;
+import org.apache.commons.imaging.ImageReadException;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
 import java.util.List;
 
 @RestController
@@ -32,10 +34,11 @@ public class ShelfImageController extends BaseController {
         return this.shelfImageService.getShelfImage(shelfImageId);
     }
 
-    @PostMapping("/updateProductReferences")
+    @PostMapping("/updateProductReferences/{shelfImageId}")
     @ResponseStatus(code = HttpStatus.OK)
-    public void updateProductReferences(@RequestBody ProductReferenceParameters parameters) {
-        this.shelfImageService.processProductReferences(parameters);
+    public void updateProductReferences(@RequestBody ProductReferenceParameters parameters,
+                                        @PathVariable Integer shelfImageId) throws IOException, ImageReadException {
+        this.shelfImageService.processProductReferences(shelfImageId, parameters);
     }
 
 }
