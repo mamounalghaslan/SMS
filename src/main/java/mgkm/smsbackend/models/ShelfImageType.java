@@ -6,29 +6,18 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
-
 @Data
 @Entity
 @Table
 @AllArgsConstructor
 @NoArgsConstructor
-public class ShelfImage {
+public class ShelfImageType {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private Integer systemId;
 
-    @ManyToOne(targetEntity = ShelfImageType.class)
     @Nonnull
-    private ShelfImageType shelfImageType;
-
-    @Nonnull
-    private LocalDateTime captureDate;
-
-    @OneToOne(targetEntity = Camera.class)
-    private Camera referencedCamera;
-
-    private String imageFileName;
+    private String description;
 
 }

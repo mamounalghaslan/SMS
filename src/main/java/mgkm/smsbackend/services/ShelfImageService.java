@@ -8,7 +8,6 @@ import mgkm.smsbackend.repositories.ProductReferenceRepository;
 import mgkm.smsbackend.repositories.ShelfImageRepository;
 import mgkm.smsbackend.utilities.ImageUtilities;
 import org.apache.commons.imaging.ImageReadException;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -24,13 +23,14 @@ public class ShelfImageService {
 
     private final ProductReferenceRepository productReferenceRepository;
 
-    @Autowired
-    private ModelService modelService;
+    private final ModelService modelService;
 
     public ShelfImageService(ShelfImageRepository shelfImageRepository,
-                             ProductReferenceRepository productReferenceRepository) {
+                             ProductReferenceRepository productReferenceRepository,
+                             ModelService modelService) {
         this.shelfImageRepository = shelfImageRepository;
         this.productReferenceRepository = productReferenceRepository;
+        this.modelService = modelService;
     }
 
     public ShelfImage getShelfImage(Integer shelfImageId) {
@@ -143,8 +143,6 @@ public class ShelfImageService {
         }
 
     }
-
-
 
     public List<ProductReference> getProductReferencesByShelfImageId(Integer shelfImageId) {
         List<ProductReference> productReferences =
