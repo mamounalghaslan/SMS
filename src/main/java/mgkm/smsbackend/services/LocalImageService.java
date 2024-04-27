@@ -14,7 +14,6 @@ import java.nio.file.Paths;
 @Service
 public class LocalImageService {
 
-
     public Resource getImage(String imagePath,
                              Integer objectSystemId,
                              String fileName) throws MalformedURLException {
