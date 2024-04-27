@@ -4,6 +4,7 @@ import mgkm.smsbackend.models.Product;
 import mgkm.smsbackend.models.ProductReference;
 import mgkm.smsbackend.repositories.ProductReferenceRepository;
 import mgkm.smsbackend.repositories.ProductRepository;
+import mgkm.smsbackend.utilities.DirectoryUtilities;
 import mgkm.smsbackend.utilities.ImageUtilities;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -50,7 +51,7 @@ public class ProductsService {
 
     public void deleteProduct(Product product) throws IOException {
 
-        ImageUtilities.purgeDirectory(ImageUtilities.getProductsDisplayImagesUrl(product.getSystemId()));
+        DirectoryUtilities.purgeDirectory(ImageUtilities.getProductsDisplayImagesUrl(product.getSystemId()));
 
         // reset product references to empty
         List<ProductReference> productReferences =

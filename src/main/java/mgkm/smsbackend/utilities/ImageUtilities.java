@@ -6,9 +6,6 @@ import org.apache.commons.imaging.common.ImageMetadata;
 import org.apache.commons.imaging.formats.jpeg.JpegImageMetadata;
 import org.apache.commons.imaging.formats.tiff.TiffField;
 import org.apache.commons.imaging.formats.tiff.constants.TiffTagConstants;
-import org.apache.tomcat.util.http.fileupload.FileUtils;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.imageio.ImageIO;
@@ -17,38 +14,29 @@ import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 
-@Component
 public class ImageUtilities {
 
-    private static String rootImagesPath;
-
-    @Value("${sms-root-images-path}")
-    public void setRootImagesPath(String rootImagesPath) {
-        ImageUtilities.rootImagesPath = rootImagesPath;
-    }
-
     public static String getProductsDisplayImagesUrl(Integer productId) {
-        return rootImagesPath + "/productsDisplayImages/" + productId + "/";
+        return DirectoryUtilities.rootDataPath + "/productsDisplayImages/" + productId + "/";
     }
 
     public static String getProductReferenceImagesUrl(Integer productReferenceId) {
-        return rootImagesPath + "/productsReferenceImages/" + productReferenceId + "/";
+        return DirectoryUtilities.rootDataPath + "/productsReferenceImages/" + productReferenceId + "/";
     }
 
-    public static String getShelfImagesUrl(Integer shelfImageId) {
-        return rootImagesPath + "/shelfImages/" + shelfImageId + "/";
+    public static String getShelfImageUrl(Integer shelfImageId) {
+        return DirectoryUtilities.rootDataPath + "/shelfImages/" + shelfImageId + "/";
     }
 
     public static String getImageUrl(String imagePath, Integer objectSystemId, String fileName) {
-        return rootImagesPath + "/" + imagePath + "/" + objectSystemId + "/" + fileName;
+        return DirectoryUtilities.rootDataPath + "/" + imagePath + "/" + objectSystemId + "/" + fileName;
     }
 
     public static void saveMultipartFileImage(String imageUrl, MultipartFile imageFile) throws IOException {
 
-        purgeOrCreateDirectory(imageUrl);
+        DirectoryUtilities.purgeOrCreateDirectory(imageUrl);
 
         Files.write(Paths.get(imageUrl + imageFile.getOriginalFilename()), imageFile.getBytes());
 
@@ -125,29 +113,6 @@ public class ImageUtilities {
 
         try (FileOutputStream fos = new FileOutputStream(outputFile)) {
             ImageIO.write(croppedImage, "jpg", fos);
-        }
-
-    }
-
-    public static void purgeOrCreateDirectory(String url) throws IOException {
-
-        Path path = Paths.get(url);
-
-        if(!Files.exists(path)) {
-            Files.createDirectories(path);
-        } else {
-            FileUtils.cleanDirectory(path.toFile());
-        }
-
-    }
-
-    public static void purgeDirectory(String url) throws IOException {
-
-        Path path = Paths.get(url);
-
-        if(Files.exists(path)) {
-            FileUtils.cleanDirectory(path.toFile());
-            Files.delete(path);
         }
 
     }

@@ -2,6 +2,8 @@ package mgkm.smsbackend.jobsConfigs.inference;
 
 import mgkm.smsbackend.jobsConfigs.listeners.JobListener;
 import mgkm.smsbackend.jobsConfigs.listeners.StepListener;
+import mgkm.smsbackend.services.CamerasService;
+import mgkm.smsbackend.services.ShelfImageService;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.job.builder.JobBuilder;
@@ -13,10 +15,23 @@ import org.springframework.transaction.PlatformTransactionManager;
 @Component
 public class InferenceTaskletsConfig {
 
+    private final CamerasService camerasService;
+    private final ShelfImageService shelfImageService;
+
+    public InferenceTaskletsConfig(CamerasService camerasService,
+                                   ShelfImageService shelfImageService) {
+        this.camerasService = camerasService;
+        this.shelfImageService = shelfImageService;
+    }
+
     protected Step dataPreparationStep(JobRepository jobRepository, PlatformTransactionManager transactionManager) {
+
+        InferenceDataPreparationTasklet inferenceDataPreparationTasklet
+                = new InferenceDataPreparationTasklet(camerasService, shelfImageService);
+
         return new StepBuilder("Inference Data Preparation Step", jobRepository)
                 .listener(new StepListener())
-                .tasklet(new InferenceDataPreparationTasklet(), transactionManager)
+                .tasklet(inferenceDataPreparationTasklet, transactionManager)
                 .build();
     }
 

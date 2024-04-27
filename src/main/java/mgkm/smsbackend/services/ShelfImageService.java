@@ -6,6 +6,7 @@ import mgkm.smsbackend.models.ProductReferenceParameters;
 import mgkm.smsbackend.models.ShelfImage;
 import mgkm.smsbackend.repositories.ProductReferenceRepository;
 import mgkm.smsbackend.repositories.ShelfImageRepository;
+import mgkm.smsbackend.utilities.DirectoryUtilities;
 import mgkm.smsbackend.utilities.ImageUtilities;
 import org.apache.commons.imaging.ImageReadException;
 import org.springframework.stereotype.Service;
@@ -72,7 +73,7 @@ public class ShelfImageService {
 
             // 1. Save the shelf image file
 
-            String shelfImageUrl = ImageUtilities.getShelfImagesUrl(shelfImage.getSystemId());
+            String shelfImageUrl = ImageUtilities.getShelfImageUrl(shelfImage.getSystemId());
 
             ImageUtilities.saveMultipartFileImage(shelfImageUrl, shelfImageFile);
 
@@ -125,7 +126,7 @@ public class ShelfImageService {
             String productReferenceImageUrl =
                     ImageUtilities.getProductReferenceImagesUrl(productReference.getSystemId());
 
-            ImageUtilities.purgeOrCreateDirectory(productReferenceImageUrl);
+            DirectoryUtilities.purgeOrCreateDirectory(productReferenceImageUrl);
 
             String productReferenceImageFileName = productReference.getSystemId() + ".jpg";
 
@@ -166,7 +167,7 @@ public class ShelfImageService {
 
         // read the image file
 
-        String shelfImageUrl = ImageUtilities.getShelfImagesUrl(shelfImageId);
+        String shelfImageUrl = ImageUtilities.getShelfImageUrl(shelfImageId);
 
         if(shelfImage != null) {
 
@@ -194,7 +195,7 @@ public class ShelfImageService {
 
             for(ProductReference productReference: parameters.getDeletes()) {
 
-                ImageUtilities.purgeDirectory(
+                DirectoryUtilities.purgeDirectory(
                         ImageUtilities.getProductReferenceImagesUrl(productReference.getSystemId())
                 );
 
@@ -214,16 +215,50 @@ public class ShelfImageService {
                     this.productReferenceRepository.findAllByShelfImage_SystemId(shelfImageId);
 
             for(ProductReference productReference : productReferences) {
-                ImageUtilities.purgeDirectory(
+                DirectoryUtilities.purgeDirectory(
                         ImageUtilities.getProductReferenceImagesUrl(productReference.getSystemId())
                 );
             }
 
             this.productReferenceRepository.deleteAll(productReferences);
 
-            ImageUtilities.purgeDirectory(ImageUtilities.getShelfImagesUrl(shelfImageId));
+            DirectoryUtilities.purgeDirectory(ImageUtilities.getShelfImageUrl(shelfImageId));
             this.shelfImageRepository.delete(shelfImage);
         }
+    }
+
+    public String generateProductReferencesMetadata(List<ProductReference> productReferences) {
+
+        int productReferencesSize = productReferences.size();
+
+        StringBuilder metadata = new StringBuilder();
+
+        metadata.append("[\n");
+
+        for(int i = 0; i < productReferencesSize; i++) {
+
+            ProductReference productReference = productReferences.get(i);
+            if (productReference.getProduct() == null) {
+                continue;
+            }
+
+            metadata.append("  {\n");
+            metadata.append("    \"name\": \"").append(productReferences.get(i).getProduct().getName()).append("\",\n");
+            metadata.append("    \"class\": ").append(productReferences.get(i).getProduct().getSystemId()).append(",\n");
+            metadata.append("    \"box\": {\n");
+            metadata.append("      \"x1\": ").append(productReferences.get(i).getX1()).append(",\n");
+            metadata.append("      \"y1\": ").append(productReferences.get(i).getY1()).append(",\n");
+            metadata.append("      \"x2\": ").append(productReferences.get(i).getX2()).append(",\n");
+            metadata.append("      \"y2\": ").append(productReferences.get(i).getY2()).append("\n");
+            metadata.append("    }\n");
+            metadata.append("  },\n");
+
+        }
+        // remove the last two characters ",\n"
+        metadata.delete(metadata.length() - 2, metadata.length());
+        metadata.append("\n]");
+
+        return metadata.toString();
     }
 
 }
