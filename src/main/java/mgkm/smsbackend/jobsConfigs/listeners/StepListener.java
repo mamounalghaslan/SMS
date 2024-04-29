@@ -19,6 +19,12 @@ public class StepListener implements StepExecutionListener {
     @Override
     public ExitStatus afterStep(@Nonnull StepExecution stepExecution) {
         log.info("After Step: {}", stepExecution.getStepName());
+
+        if (!stepExecution.getFailureExceptions().isEmpty()) {
+            log.warn("Exception caught in step: {}", stepExecution.getFailureExceptions().getFirst().toString());
+            return ExitStatus.FAILED;
+        }
+
         return ExitStatus.COMPLETED;
     }
 

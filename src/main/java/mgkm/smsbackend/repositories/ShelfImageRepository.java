@@ -7,6 +7,6 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface ShelfImageRepository extends CrudRepository<ShelfImage, Integer>{
 
-    ShelfImage findByReferencedCamera_SystemId(Integer cameraId);
+    Iterable<ShelfImage> findAllByReferencedCamera_SystemId(Integer cameraId);
 
 }

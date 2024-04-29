@@ -1,0 +1,7 @@
+program: C:/Development/SMS/sms-backend/src/main/python/recognition/infer.py
+data_dir: C:/Development/SMS-DATA/inference-data
+camera_names: all
+backbone: resnet18
+checkpoint: C:/Development/SMS/sms-backend/src/main/python/recognition/weights/checkpoint_80.pth
+yolo_weights: C:/Development/SMS/sms-backend/src/main/python/recognition/weights/DavidK0-YOLOv8-small.pt
+device: cpu

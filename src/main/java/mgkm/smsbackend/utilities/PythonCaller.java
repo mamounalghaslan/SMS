@@ -1,35 +1,32 @@
 package mgkm.smsbackend.utilities;
 
-import org.springframework.beans.factory.annotation.Value;
+import mgkm.smsbackend.jobsConfigs.listeners.JobListener;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.Arrays;
 
 @Component
 public class PythonCaller {
 
-    private static String pythonPath;
+    private static final Logger log = LoggerFactory.getLogger(JobListener.class);
 
-    @Value("${python-executable-path}")
-    public void setPythonPath(String pythonPath) {
-        PythonCaller.pythonPath = pythonPath;
-    }
-
-    public static void callPython(
-            String scriptPath,
-            String modelPath,
-            String imagePath,
-            String outputPath) {
+    public static void callPython(String... args) {
 
         try {
-            ProcessBuilder processBuilder = new ProcessBuilder(
-                    pythonPath,
-                    scriptPath,
-                    modelPath,
-                    imagePath,
-                    outputPath);
+
+            ArrayList<String> fullArgs = new ArrayList<>();
+            fullArgs.add(DirectoryUtilities.pythonPath);
+            fullArgs.addAll(Arrays.asList(args));
+
+            log.info("Python Caller: {}", fullArgs);
+
+            ProcessBuilder processBuilder = new ProcessBuilder(fullArgs);
 
             Process process = processBuilder.start();
 
@@ -37,12 +34,17 @@ public class PythonCaller {
 
             String line;
             while ((line = bufferedReader.readLine()) != null) {
-                System.out.println(line);
+                log.info(line);
             }
 
             int exitCode = process.waitFor();
-            System.out.println("Script executed, exit code: " + exitCode);
-        } catch (IOException | InterruptedException e) {
+            log.info("Script executed, exit code: {}", exitCode);
+
+        } catch (IOException e) {
+            log.error("Error executing python script.");
+            throw new RuntimeException(e);
+        } catch (InterruptedException e) {
+            log.warn("Python script interrupted.");
             throw new RuntimeException(e);
         }
 

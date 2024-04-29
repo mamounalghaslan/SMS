@@ -2,7 +2,6 @@ package mgkm.smsbackend.repositories;
 
 import mgkm.smsbackend.models.Product;
 import mgkm.smsbackend.models.ProductReference;
-import mgkm.smsbackend.models.ShelfImage;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 

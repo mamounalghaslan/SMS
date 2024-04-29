@@ -1,9 +1,7 @@
 package mgkm.smsbackend.services;
 
-import mgkm.smsbackend.models.Camera;
-import mgkm.smsbackend.models.ProductReference;
-import mgkm.smsbackend.models.ProductReferenceParameters;
-import mgkm.smsbackend.models.ShelfImage;
+import mgkm.smsbackend.models.*;
+import mgkm.smsbackend.repositories.MisplacedProductReferenceRepository;
 import mgkm.smsbackend.repositories.ProductReferenceRepository;
 import mgkm.smsbackend.repositories.ShelfImageRepository;
 import mgkm.smsbackend.utilities.DirectoryUtilities;
@@ -21,16 +19,18 @@ import java.util.List;
 public class ShelfImageService {
 
     private final ShelfImageRepository shelfImageRepository;
-
     private final ProductReferenceRepository productReferenceRepository;
+    private final MisplacedProductReferenceRepository misplacedProductReferenceRepository;
 
     private final ModelService modelService;
 
     public ShelfImageService(ShelfImageRepository shelfImageRepository,
                              ProductReferenceRepository productReferenceRepository,
+                                MisplacedProductReferenceRepository misplacedProductReferenceRepository,
                              ModelService modelService) {
         this.shelfImageRepository = shelfImageRepository;
         this.productReferenceRepository = productReferenceRepository;
+        this.misplacedProductReferenceRepository = misplacedProductReferenceRepository;
         this.modelService = modelService;
     }
 
@@ -48,19 +48,31 @@ public class ShelfImageService {
     }
 
     public ShelfImage getShelfImageByCamera(Camera camera) {
-        return this.shelfImageRepository.findByReferencedCamera_SystemId(camera.getSystemId());
+
+        Iterable<ShelfImage> shelfImages = this.shelfImageRepository.findAllByReferencedCamera_SystemId(camera.getSystemId());
+        for(ShelfImage shelfImage : shelfImages) {
+            if(shelfImage.getShelfImageType().getSystemId() == 2) {
+                return shelfImage;
+            }
+        }
+
+        return null;
+
     }
 
     public ShelfImage addNewShelfImage(ShelfImage shelfImage) {
 
         ShelfImage previousShelfImage = null;
-        if (shelfImage.getReferencedCamera() != null) {
-            previousShelfImage = this.shelfImageRepository.findByReferencedCamera_SystemId(
-                    shelfImage.getReferencedCamera().getSystemId());
+
+        if (shelfImage.getReferencedCamera() != null && shelfImage.getShelfImageType().getSystemId() == 2) {
+            previousShelfImage = this.getShelfImageByCamera(shelfImage.getReferencedCamera());
         }
 
         if(previousShelfImage != null) {
             previousShelfImage.setReferencedCamera(null);
+            previousShelfImage.setShelfImageType(
+                    new ShelfImageType(1, "Training")
+            );
             this.shelfImageRepository.save(previousShelfImage);
         }
 
@@ -161,6 +173,11 @@ public class ShelfImageService {
         return productReferences;
     }
 
+    public List<MisplacedProductReference> getMisplacedProductReferencesByShelfImageId(Integer shelfImageId) {
+        return (List<MisplacedProductReference>)
+                this.misplacedProductReferenceRepository.findAllByShelfImage_SystemId(shelfImageId);
+    }
+
     public void processProductReferences(Integer shelfImageId, ProductReferenceParameters parameters) throws IOException, ImageReadException {
 
         ShelfImage shelfImage = this.shelfImageRepository.findById(shelfImageId).orElse(null);
@@ -244,7 +261,7 @@ public class ShelfImageService {
 
             metadata.append("  {\n");
             metadata.append("    \"name\": \"").append(productReferences.get(i).getProduct().getName()).append("\",\n");
-            metadata.append("    \"class\": ").append(productReferences.get(i).getProduct().getSystemId()).append(",\n");
+            metadata.append("    \"id\": ").append(productReferences.get(i).getProduct().getSystemId()).append(",\n");
             metadata.append("    \"box\": {\n");
             metadata.append("      \"x1\": ").append(productReferences.get(i).getX1()).append(",\n");
             metadata.append("      \"y1\": ").append(productReferences.get(i).getY1()).append(",\n");
@@ -259,6 +276,10 @@ public class ShelfImageService {
         metadata.append("\n]");
 
         return metadata.toString();
+    }
+
+    public void saveAllMisplacedProductReferences(List<MisplacedProductReference> misplacedProductReferences) {
+        this.misplacedProductReferenceRepository.saveAll(misplacedProductReferences);
     }
 
 }

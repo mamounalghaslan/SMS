@@ -20,6 +20,7 @@ import org.springframework.batch.repeat.RepeatStatus;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.List;
+import java.util.Random;
 
 @Setter
 public class InferenceDataPreparationTasklet implements Tasklet {
@@ -58,7 +59,35 @@ public class InferenceDataPreparationTasklet implements Tasklet {
             String cameraDirectory = DirectoryUtilities.getInferenceDataPath() + "/camera_" + camera.getSystemId();
 
             try {
+
                 DirectoryUtilities.purgeOrCreateDirectory(cameraDirectory);
+
+                DirectoryUtilities.purgeOrCreateDirectory(cameraDirectory + "/images");
+
+                // This is the part where we should capture an image from the cameras
+                // and save it in the camera directory
+
+                String sampleImagePath = "";
+
+                if(camera.getSystemId() == 1) {
+                    List<String> camera1samples = DirectoryUtilities.readFileNamesInDirectory(
+                            DirectoryUtilities.getCamera1SamplesPath());
+                    // randomly select a sample image from camera1samples
+                    Random random = new Random();
+                    int index = random.nextInt(camera1samples.size());
+                    sampleImagePath = DirectoryUtilities.getCamera1SamplesPath() + "/" + camera1samples.get(index);
+                } else if(camera.getSystemId() == 2) {
+                    List<String> camera2samples = DirectoryUtilities.readFileNamesInDirectory(
+                            DirectoryUtilities.getCamera2SamplesPath());
+                    // randomly select a sample image from camera2samples
+                    Random random = new Random();
+                    int index = random.nextInt(camera2samples.size());
+                    sampleImagePath = DirectoryUtilities.getCamera2SamplesPath() + "/" + camera2samples.get(index);
+                }
+
+                DirectoryUtilities.copyFileToDirectory(
+                        sampleImagePath, cameraDirectory + "/images/capture.jpg");
+
             } catch (IOException e) {
                 log.error("Failed to create camera directory: {}", cameraDirectory);
                 throw new RuntimeException(e);
@@ -68,26 +97,48 @@ public class InferenceDataPreparationTasklet implements Tasklet {
             ShelfImage referenceShelfImage = shelfImageService.getShelfImageByCamera(camera);
 
             try {
+
+                String shelfImageFile = ImageUtilities.getShelfImageUrl(referenceShelfImage.getSystemId())
+                        + referenceShelfImage.getImageFileName();
+
+                if(camera.getSystemId() == 1) {
+                    shelfImageFile = DirectoryUtilities.getCamera1ReferenceImagePath();
+                } else if (camera.getSystemId() == 2) {
+                    shelfImageFile = DirectoryUtilities.getCamera2ReferenceImagePath();
+                }
+
                 DirectoryUtilities.copyFileToDirectory(
-                        ImageUtilities.getShelfImageUrl(referenceShelfImage.getSystemId())
-                                + referenceShelfImage.getImageFileName(),
+                        shelfImageFile,
                         cameraDirectory + "/reference.jpg");
+
             } catch (IOException e) {
                 log.error("Failed to copy reference shelf image {} to camera directory: {}",
                         referenceShelfImage, cameraDirectory + "/reference.jpg");
                 throw new RuntimeException(e);
             }
 
-            // for each camera, get the reference shelf image and get its product references
             List<ProductReference> productReferences =
                     this.shelfImageService.getProductReferencesByShelfImageId(referenceShelfImage.getSystemId());
 
-            // put all product references in metadata.json in the camera directory
-            String metadataJson = this.shelfImageService.generateProductReferencesMetadata(productReferences);
-
             try {
+
                 log.info("Writing metadata.json to camera directory: {}", cameraDirectory + "/metadata.json");
+
+                // This is the actual method call
+                String metadataJson = this.shelfImageService.generateProductReferencesMetadata(productReferences);
+
+                if(camera.getSystemId() == 1) {
+                    metadataJson = DirectoryUtilities.readStringFromFile(
+                            DirectoryUtilities.getCamera1MetadataPath()
+                    );
+                } else if (camera.getSystemId() == 2) {
+                    metadataJson = DirectoryUtilities.readStringFromFile(
+                            DirectoryUtilities.getCamera2MetadataPath()
+                    );
+                }
+
                 DirectoryUtilities.writeStringToFile(metadataJson, cameraDirectory + "/metadata.json");
+
             } catch (IOException | URISyntaxException e) {
                 log.error("Failed to write metadata.json to camera directory: {}", cameraDirectory);
                 throw new RuntimeException(e);

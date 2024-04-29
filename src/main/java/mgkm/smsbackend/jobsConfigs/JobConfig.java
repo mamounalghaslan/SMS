@@ -73,7 +73,7 @@ public class JobConfig {
                     }
                 },
                 Instant.now(),
-                Duration.ofSeconds(10));
+                Duration.ofSeconds(30));
 
         log.info("Inference Job scheduled.");
         return "Inference Job scheduled.";

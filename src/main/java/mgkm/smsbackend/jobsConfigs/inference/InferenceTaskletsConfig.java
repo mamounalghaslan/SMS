@@ -3,6 +3,7 @@ package mgkm.smsbackend.jobsConfigs.inference;
 import mgkm.smsbackend.jobsConfigs.listeners.JobListener;
 import mgkm.smsbackend.jobsConfigs.listeners.StepListener;
 import mgkm.smsbackend.services.CamerasService;
+import mgkm.smsbackend.services.ProductsService;
 import mgkm.smsbackend.services.ShelfImageService;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
@@ -17,21 +18,21 @@ public class InferenceTaskletsConfig {
 
     private final CamerasService camerasService;
     private final ShelfImageService shelfImageService;
+    private final ProductsService productsService;
 
     public InferenceTaskletsConfig(CamerasService camerasService,
-                                   ShelfImageService shelfImageService) {
+                                   ShelfImageService shelfImageService,
+                                   ProductsService productsService) {
         this.camerasService = camerasService;
         this.shelfImageService = shelfImageService;
+        this.productsService = productsService;
     }
 
     protected Step dataPreparationStep(JobRepository jobRepository, PlatformTransactionManager transactionManager) {
-
-        InferenceDataPreparationTasklet inferenceDataPreparationTasklet
-                = new InferenceDataPreparationTasklet(camerasService, shelfImageService);
-
         return new StepBuilder("Inference Data Preparation Step", jobRepository)
                 .listener(new StepListener())
-                .tasklet(inferenceDataPreparationTasklet, transactionManager)
+                .tasklet(new InferenceDataPreparationTasklet(
+                        this.camerasService, this.shelfImageService), transactionManager)
                 .build();
     }
 
@@ -45,17 +46,22 @@ public class InferenceTaskletsConfig {
     protected Step outputStep(JobRepository jobRepository, PlatformTransactionManager transactionManager) {
         return new StepBuilder("Inference Output Step", jobRepository)
                 .listener(new StepListener())
-                .tasklet(new InferenceOutputTasklet(), transactionManager)
+                .tasklet(new InferenceOutputTasklet(
+                        this.camerasService, this.shelfImageService, this.productsService), transactionManager)
                 .build();
     }
 
     public Job inferenceJob(JobRepository jobRepository, PlatformTransactionManager transactionManager) {
+        Step dataPreparationStep = dataPreparationStep(jobRepository, transactionManager);
+        Step inferenceStep = inferenceStep(jobRepository, transactionManager);
+        Step outputStep = outputStep(jobRepository, transactionManager);
 
         return new JobBuilder("Inference Job", jobRepository)
                 .listener(new JobListener())
-                .start(dataPreparationStep(jobRepository, transactionManager))
-                .next(inferenceStep(jobRepository, transactionManager))
-                .next(outputStep(jobRepository, transactionManager))
+                .start(dataPreparationStep)
+                .on("COMPLETED").to(inferenceStep)
+                .from(inferenceStep).on("COMPLETED").to(outputStep)
+                .from(outputStep).end()
                 .build();
     }
 

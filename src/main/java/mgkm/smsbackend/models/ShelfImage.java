@@ -26,7 +26,7 @@ public class ShelfImage {
     @Nonnull
     private LocalDateTime captureDate;
 
-    @OneToOne(targetEntity = Camera.class)
+    @ManyToOne(targetEntity = Camera.class)
     private Camera referencedCamera;
 
     private String imageFileName;

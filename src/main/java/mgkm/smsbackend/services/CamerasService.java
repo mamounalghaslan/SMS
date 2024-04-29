@@ -44,9 +44,10 @@ public class CamerasService {
 
     public void deleteCamera(Camera camera) {
 
-        ShelfImage referenceShelfImage = this.shelfImageRepository.findByReferencedCamera_SystemId(camera.getSystemId());
+        Iterable<ShelfImage> referenceShelfImages =
+                this.shelfImageRepository.findAllByReferencedCamera_SystemId(camera.getSystemId());
 
-        if (referenceShelfImage != null) {
+        for (ShelfImage referenceShelfImage : referenceShelfImages) {
             referenceShelfImage.setReferencedCamera(null);
             this.shelfImageRepository.save(referenceShelfImage);
         }
