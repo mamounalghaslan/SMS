@@ -64,5 +64,11 @@ public class CamerasController extends BaseController {
         return this.shelfImageService.getShelfImageByCamera(this.camerasService.getCamera(cameraId));
     }
 
+    @PostMapping("/initialize")
+    @ResponseStatus(code = HttpStatus.CREATED)
+    public void initialize() {
+        this.camerasService.initialize();
+    }
+
 
 }

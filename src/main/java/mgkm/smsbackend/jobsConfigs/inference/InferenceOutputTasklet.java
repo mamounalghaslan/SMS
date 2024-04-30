@@ -13,6 +13,7 @@ import mgkm.smsbackend.services.CamerasService;
 import mgkm.smsbackend.services.ProductsService;
 import mgkm.smsbackend.services.ShelfImageService;
 import mgkm.smsbackend.utilities.DirectoryUtilities;
+import mgkm.smsbackend.utilities.ImageUtilities;
 import mgkm.smsbackend.utilities.JSONReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,6 +22,7 @@ import org.springframework.batch.core.scope.context.ChunkContext;
 import org.springframework.batch.core.step.tasklet.Tasklet;
 import org.springframework.batch.repeat.RepeatStatus;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -58,12 +60,25 @@ public class InferenceOutputTasklet implements Tasklet {
 
             shelfImage.setShelfImageType(new ShelfImageType(3, "Inference"));
             shelfImage.setCaptureDate(LocalDateTime.now());
-
             shelfImage.setReferencedCamera(
                     this.camerasService.getCamera(
-                            Integer.parseInt(
-                                    cameraResult.getCamera().substring(7)))
+                            Integer.parseInt(cameraResult.getCamera().substring(7)))
             );
+
+            // save to get the new ID
+            shelfImage = this.shelfImageService.addNewShelfImage(shelfImage);
+
+            try {
+                DirectoryUtilities.purgeOrCreateDirectory(ImageUtilities.getShelfImageUrl(shelfImage.getSystemId()));
+                DirectoryUtilities.copyFileToDirectory(
+                        DirectoryUtilities.getInferenceDataPath() + "/" + cameraResult.getCamera() + "/images/capture.jpg",
+                        ImageUtilities.getShelfImageUrl(shelfImage.getSystemId()) + "/capture.jpg"
+                );
+                shelfImage.setImageFileName("capture.jpg");
+            } catch (IOException e) {
+                log.error("Failed to copy the shelf image file.");
+                throw new RuntimeException(e);
+            }
 
             // save the shelf image
             shelfImage = this.shelfImageService.addNewShelfImage(shelfImage);

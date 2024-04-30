@@ -1,6 +1,7 @@
 package mgkm.smsbackend.controllers;
 
 import lombok.AllArgsConstructor;
+import mgkm.smsbackend.models.MisplacedProductReference;
 import mgkm.smsbackend.models.ProductReference;
 import mgkm.smsbackend.models.ProductReferenceParameters;
 import mgkm.smsbackend.models.ShelfImage;
@@ -45,6 +46,12 @@ public class ShelfImageController extends BaseController {
     @ResponseStatus(code = HttpStatus.OK)
     public void deleteShelfImage(@PathVariable Integer shelfImageId) throws IOException {
         this.shelfImageService.deleteShelfImage(shelfImageId);
+    }
+
+    @GetMapping("/misplacedProductReferences/{shelfImageId}")
+    public List<MisplacedProductReference> getMisplacedProductReferencesByShelfImageId(
+            @PathVariable Integer shelfImageId) {
+        return this.shelfImageService.getMisplacedProductReferencesByShelfImageId(shelfImageId);
     }
 
 }

@@ -12,7 +12,10 @@ if __name__ == '__main__':
 
     with open(sys.argv[1]) as f:
         data = yaml.load(f, Loader=SafeLoader)
-    
+
+    python = data['python']
+    del data['python']
+
     program = data['program']
     del data['program']
 
@@ -30,7 +33,7 @@ if __name__ == '__main__':
             skip = True
         data[k] = v
 
-    args = ["C:/Development/Anaconda3/python.exe", os.path.join(os.getcwd(), program)]
+    args = [python, os.path.join(os.getcwd(), program)]
     for k, v in data.items():
         args.extend(["--" + k, str(v)])
     print("Running:", ' '.join(args))

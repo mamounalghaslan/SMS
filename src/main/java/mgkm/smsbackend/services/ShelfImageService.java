@@ -173,11 +173,6 @@ public class ShelfImageService {
         return productReferences;
     }
 
-    public List<MisplacedProductReference> getMisplacedProductReferencesByShelfImageId(Integer shelfImageId) {
-        return (List<MisplacedProductReference>)
-                this.misplacedProductReferenceRepository.findAllByShelfImage_SystemId(shelfImageId);
-    }
-
     public void processProductReferences(Integer shelfImageId, ProductReferenceParameters parameters) throws IOException, ImageReadException {
 
         ShelfImage shelfImage = this.shelfImageRepository.findById(shelfImageId).orElse(null);
@@ -252,6 +247,7 @@ public class ShelfImageService {
 
         metadata.append("[\n");
 
+        boolean hasAtLeastOne = false;
         for(int i = 0; i < productReferencesSize; i++) {
 
             ProductReference productReference = productReferences.get(i);
@@ -259,6 +255,7 @@ public class ShelfImageService {
                 continue;
             }
 
+            hasAtLeastOne = true;
             metadata.append("  {\n");
             metadata.append("    \"name\": \"").append(productReferences.get(i).getProduct().getName()).append("\",\n");
             metadata.append("    \"id\": ").append(productReferences.get(i).getProduct().getSystemId()).append(",\n");
@@ -271,8 +268,12 @@ public class ShelfImageService {
             metadata.append("  },\n");
 
         }
-        // remove the last two characters ",\n"
-        metadata.delete(metadata.length() - 2, metadata.length());
+
+        if(hasAtLeastOne) {
+            // remove the last two characters ",\n"
+            metadata.delete(metadata.length() - 2, metadata.length());
+        }
+
         metadata.append("\n]");
 
         return metadata.toString();
@@ -280,6 +281,11 @@ public class ShelfImageService {
 
     public void saveAllMisplacedProductReferences(List<MisplacedProductReference> misplacedProductReferences) {
         this.misplacedProductReferenceRepository.saveAll(misplacedProductReferences);
+    }
+
+    public List<MisplacedProductReference> getMisplacedProductReferencesByShelfImageId(Integer shelfImageId) {
+        return (List<MisplacedProductReference>)
+                this.misplacedProductReferenceRepository.findAllByShelfImage_SystemId(shelfImageId);
     }
 
 }

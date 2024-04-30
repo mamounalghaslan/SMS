@@ -42,5 +42,11 @@ public class ProductsController extends BaseController {
         this.productsService.deleteProduct(product);
     }
 
+    @PostMapping("/initializeProducts")
+    @ResponseStatus(code = HttpStatus.CREATED)
+    public void initializeProducts() throws IOException {
+        this.productsService.initialize();
+    }
+
 
 }

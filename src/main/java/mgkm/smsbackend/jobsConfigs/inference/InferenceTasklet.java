@@ -28,7 +28,8 @@ public class InferenceTasklet implements Tasklet {
 
         // Generate the inference.yaml
         String inferenceConfig =
-                "program: " + DirectoryUtilities.recognitionInferenceScriptPath + "\n"
+                "python: " + DirectoryUtilities.pythonPath + "\n"
+                + "program: " + DirectoryUtilities.recognitionInferenceScriptPath + "\n"
                 + "data_dir: " + DirectoryUtilities.getInferenceDataPath() + "\n"
                 + "camera_names: all\n"
                 + "backbone: resnet18\n"
@@ -45,10 +46,15 @@ public class InferenceTasklet implements Tasklet {
             throw new RuntimeException(e);
         }
 
-        PythonCaller.callPython(
+        int exitCode = PythonCaller.callPython(
                 DirectoryUtilities.recognitionLauncherScriptPath,
                 DirectoryUtilities.recognitionInferenceConfigPath
         );
+
+        if (exitCode != 0) {
+            log.error("Inference failed with exit code: {}", exitCode);
+            throw new RuntimeException("Inference failed with exit code: " + exitCode);
+        }
 
         return RepeatStatus.FINISHED;
     }

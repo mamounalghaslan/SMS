@@ -55,6 +55,13 @@ public class InferenceDataPreparationTasklet implements Tasklet {
 
         for (Camera camera : cameras) {
 
+            // camera must have a reference image
+            ShelfImage referenceShelfImage = shelfImageService.getShelfImageByCamera(camera);
+
+            if (referenceShelfImage == null) {
+                continue;
+            }
+
             // for each camera, create a directory in the inference data directory
             String cameraDirectory = DirectoryUtilities.getInferenceDataPath() + "/camera_" + camera.getSystemId();
 
@@ -93,19 +100,10 @@ public class InferenceDataPreparationTasklet implements Tasklet {
                 throw new RuntimeException(e);
             }
 
-            // for each camera, get the reference shelf image and save it as reference.jpg in the camera directory
-            ShelfImage referenceShelfImage = shelfImageService.getShelfImageByCamera(camera);
-
             try {
 
                 String shelfImageFile = ImageUtilities.getShelfImageUrl(referenceShelfImage.getSystemId())
                         + referenceShelfImage.getImageFileName();
-
-                if(camera.getSystemId() == 1) {
-                    shelfImageFile = DirectoryUtilities.getCamera1ReferenceImagePath();
-                } else if (camera.getSystemId() == 2) {
-                    shelfImageFile = DirectoryUtilities.getCamera2ReferenceImagePath();
-                }
 
                 DirectoryUtilities.copyFileToDirectory(
                         shelfImageFile,
@@ -126,16 +124,6 @@ public class InferenceDataPreparationTasklet implements Tasklet {
 
                 // This is the actual method call
                 String metadataJson = this.shelfImageService.generateProductReferencesMetadata(productReferences);
-
-                if(camera.getSystemId() == 1) {
-                    metadataJson = DirectoryUtilities.readStringFromFile(
-                            DirectoryUtilities.getCamera1MetadataPath()
-                    );
-                } else if (camera.getSystemId() == 2) {
-                    metadataJson = DirectoryUtilities.readStringFromFile(
-                            DirectoryUtilities.getCamera2MetadataPath()
-                    );
-                }
 
                 DirectoryUtilities.writeStringToFile(metadataJson, cameraDirectory + "/metadata.json");
 

@@ -16,7 +16,9 @@ public class PythonCaller {
 
     private static final Logger log = LoggerFactory.getLogger(JobListener.class);
 
-    public static void callPython(String... args) {
+    public static int callPython(String... args) {
+
+        int exitCode;
 
         try {
 
@@ -37,7 +39,7 @@ public class PythonCaller {
                 log.info(line);
             }
 
-            int exitCode = process.waitFor();
+            exitCode = process.waitFor();
             log.info("Script executed, exit code: {}", exitCode);
 
         } catch (IOException e) {
@@ -48,6 +50,7 @@ public class PythonCaller {
             throw new RuntimeException(e);
         }
 
+        return exitCode;
     }
 
 }
