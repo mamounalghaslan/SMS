@@ -13,6 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
 
@@ -57,6 +58,14 @@ public class ModelService {
         List<Model> models = (List<Model>) this.modelRepository.findAll();
         models.sort(Comparator.comparing(Model::getCreationDate));
         return models;
+    }
+
+    public void initialize() {
+        ModelType modelType = new ModelType(null, "ResNet18", "resnet18.pth");
+        this.modelTypeRepository.save(modelType);
+
+        Model model = new Model(null, modelType, LocalDateTime.now(), false);
+        this.modelRepository.save(model);
     }
 
 }

@@ -67,4 +67,9 @@ public class ModelsController extends BaseController {
         return this.modelService.getModelTypes();
     }
 
+    @PostMapping("/initialize")
+    public void initialize() {
+        this.modelService.initialize();
+    }
+
 }

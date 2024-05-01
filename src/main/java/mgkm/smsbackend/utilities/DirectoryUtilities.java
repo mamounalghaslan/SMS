@@ -30,22 +30,6 @@ public class DirectoryUtilities {
     public static String recognitionModelWeightsPath;
     public static String recognitionYoloWeightsPath;
 
-    public static String getCamera1MetadataPath() {
-        return rootDataPath + "/references/camera_1/metadata.json";
-    }
-
-    public static String getCamera2MetadataPath() {
-        return rootDataPath + "/references/camera_2/metadata.json";
-    }
-
-    public static String getCamera1ReferenceImagePath() {
-        return rootDataPath + "/references/camera_1/reference.jpg";
-    }
-
-    public static String getCamera2ReferenceImagePath() {
-        return rootDataPath + "/references/camera_2/reference.jpg";
-    }
-
     public static String getCamera1SamplesPath() {
         return rootDataPath + "/samples/camera_1";
     }
@@ -139,11 +123,6 @@ public class DirectoryUtilities {
     public static void writeStringToFile(String content, String targetFileUrl) throws IOException, URISyntaxException {
         Path targetPath = Paths.get(targetFileUrl);
         Files.writeString(targetPath, content);
-    }
-
-    public static String readStringFromFile(String targetFileUrl) throws IOException {
-        Path targetPath = Paths.get(targetFileUrl);
-        return Files.readString(targetPath);
     }
 
     public static List<String> readFileNamesInDirectory(String directoryUrl) throws IOException {
