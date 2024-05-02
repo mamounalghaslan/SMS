@@ -223,16 +223,18 @@ public class ShelfImageService {
         ShelfImage shelfImage = this.shelfImageRepository.findById(shelfImageId).orElse(null);
 
         if(shelfImage != null) {
+
             List<ProductReference> productReferences = (List<ProductReference>)
                     this.productReferenceRepository.findAllByShelfImage_SystemId(shelfImageId);
-
             for(ProductReference productReference : productReferences) {
                 DirectoryUtilities.purgeDirectory(
                         ImageUtilities.getProductReferenceImagesUrl(productReference.getSystemId())
                 );
             }
-
             this.productReferenceRepository.deleteAll(productReferences);
+
+            this.misplacedProductReferenceRepository.deleteAll(
+                    this.misplacedProductReferenceRepository.findAllByShelfImage_SystemId(shelfImageId));
 
             DirectoryUtilities.purgeDirectory(ImageUtilities.getShelfImageUrl(shelfImageId));
             this.shelfImageRepository.delete(shelfImage);

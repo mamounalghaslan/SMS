@@ -11,6 +11,8 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.List;
 
 @RestController
@@ -24,7 +26,9 @@ public class CamerasController extends BaseController {
 
     @GetMapping("/allCameras")
     public List<Camera> getAllCameras() {
-        return this.camerasService.getAllCameras();
+        List<Camera> cameras = this.camerasService.getAllCameras();
+        cameras.sort(Comparator.comparing(Camera::getSystemId).reversed());
+        return cameras;
     }
 
     @GetMapping("/{cameraId}")
@@ -47,6 +51,7 @@ public class CamerasController extends BaseController {
     @PostMapping("/addNewShelfImage")
     @ResponseStatus(code = HttpStatus.CREATED)
     public ShelfImage addNewShelfImage(@RequestBody ShelfImage shelfImage) {
+        shelfImage.setCaptureDate(LocalDateTime.now());
         return this.shelfImageService.addNewShelfImage(shelfImage);
     }
 
