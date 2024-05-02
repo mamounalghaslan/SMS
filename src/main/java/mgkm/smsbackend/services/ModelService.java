@@ -13,6 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
@@ -50,6 +51,10 @@ public class ModelService {
 
     }
 
+    public Model saveModel(Model model) {
+        return this.modelRepository.save(model);
+    }
+
     public List<ModelType> getModelTypes() {
         return (List<ModelType>) this.modelTypeRepository.findAll();
     }
@@ -60,12 +65,44 @@ public class ModelService {
         return models;
     }
 
-    public void initialize() {
+    public void initialize() throws IOException {
         ModelType modelType = new ModelType(null, "ResNet18", "resnet18.pth");
         this.modelTypeRepository.save(modelType);
 
-        Model model = new Model(null, modelType, LocalDateTime.now(), false);
+        Model model = new Model(
+                null,
+                modelType,
+                LocalDateTime.now(),
+                false
+                , "checkpoint.pth");
+
         this.modelRepository.save(model);
+
+        model.setModelFileName(model.getSystemId() + "_weights.pth");
+
+        this.modelRepository.save(model);
+
+        DirectoryUtilities.purgeOrCreateDirectory(
+                DirectoryUtilities.getRecognitionModelWeightsPath() + "/" + model.getSystemId());
+
+        DirectoryUtilities.copyFileToDirectory(
+                DirectoryUtilities.getRecognitionModelWeightsPath() + "/checkpoint_80.pth",
+                DirectoryUtilities.getRecognitionModelWeightsPath() + "/" + model.getSystemId() + "/" + model.getModelFileName()
+        );
+
+    }
+
+    public void deleteModel(Integer modelId) throws IOException {
+
+        Model model = this.modelRepository.findById(modelId).orElse(null);
+
+        if(model != null) {
+            DirectoryUtilities.purgeDirectory(
+                    DirectoryUtilities.getRecognitionModelWeightsPath() + "/" + model.getSystemId());
+
+            this.modelRepository.delete(model);
+        }
+
     }
 
 }

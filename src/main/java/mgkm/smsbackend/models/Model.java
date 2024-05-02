@@ -28,4 +28,6 @@ public class Model {
 
     private Boolean isRunning = Boolean.FALSE;
 
+    private String modelFileName;
+
 }

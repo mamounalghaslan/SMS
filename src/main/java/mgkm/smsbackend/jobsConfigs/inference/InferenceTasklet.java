@@ -33,7 +33,7 @@ public class InferenceTasklet implements Tasklet {
                 + "data_dir: " + DirectoryUtilities.getInferenceDataPath() + "\n"
                 + "camera_names: all\n"
                 + "backbone: resnet18\n"
-                + "checkpoint: " + DirectoryUtilities.recognitionModelWeightsPath + "\n"
+                + "checkpoint: " + DirectoryUtilities.getRecognitionModelWeightsPath() + "/checkpoint_80.pth\n"
                 + "yolo_weights: " + DirectoryUtilities.recognitionYoloWeightsPath + "\n"
                 + "device: " + DirectoryUtilities.deviceType;
 

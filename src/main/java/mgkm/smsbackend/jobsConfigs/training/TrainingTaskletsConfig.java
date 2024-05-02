@@ -2,6 +2,9 @@ package mgkm.smsbackend.jobsConfigs.training;
 
 import mgkm.smsbackend.jobsConfigs.listeners.JobListener;
 import mgkm.smsbackend.jobsConfigs.listeners.StepListener;
+import mgkm.smsbackend.services.CamerasService;
+import mgkm.smsbackend.services.ModelService;
+import mgkm.smsbackend.services.ShelfImageService;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.job.builder.JobBuilder;
@@ -13,10 +16,23 @@ import org.springframework.transaction.PlatformTransactionManager;
 @Component
 public class TrainingTaskletsConfig {
 
+    private final CamerasService camerasService;
+    private final ShelfImageService shelfImageService;
+    private final ModelService modelService;
+
+    public TrainingTaskletsConfig(CamerasService camerasService,
+                                  ShelfImageService shelfImageService,
+                                  ModelService modelService) {
+        this.camerasService = camerasService;
+        this.shelfImageService = shelfImageService;
+        this.modelService = modelService;
+    }
+
     protected Step dataPreparationStep(JobRepository jobRepository, PlatformTransactionManager transactionManager) {
         return new StepBuilder("Training Data Preparation Step", jobRepository)
                 .listener(new StepListener())
-                .tasklet(new TrainingDataPreparationTasklet(), transactionManager)
+                .tasklet(new TrainingDataPreparationTasklet(
+                        this.camerasService, this.shelfImageService), transactionManager)
                 .build();
     }
 
@@ -30,7 +46,7 @@ public class TrainingTaskletsConfig {
     protected Step outputStep(JobRepository jobRepository, PlatformTransactionManager transactionManager) {
         return new StepBuilder("Training Output Step", jobRepository)
                 .listener(new StepListener())
-                .tasklet(new TrainingOutputTasklet(), transactionManager)
+                .tasklet(new TrainingOutputTasklet(this.modelService), transactionManager)
                 .build();
     }
 

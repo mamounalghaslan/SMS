@@ -98,7 +98,7 @@ public class JobConfig {
 
     // Training -----------------------------------------------------------------------------------------
 
-    public String startTrainingJob() {
+    public String startTrainingJob(String modelFileName) {
 
         if (this.trainingFutureJob != null && !this.trainingFutureJob.isDone()) {
             log.info("Training Job already running!");
@@ -110,7 +110,8 @@ public class JobConfig {
                     try {
                         this.jobLauncher.run(
                                 this.trainingTaskletsConfig.trainingJob(
-                                        this.jobRepository, this.transactionManager),
+                                        this.jobRepository,
+                                        this.transactionManager),
                                 new JobParametersBuilder()
                                         .addString("JobID", String.valueOf(new Date().getTime()))
                                         .toJobParameters());

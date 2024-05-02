@@ -27,7 +27,8 @@ public class DirectoryUtilities {
     public static String recognitionLauncherScriptPath;
     public static String recognitionInferenceScriptPath;
     public static String recognitionInferenceConfigPath;
-    public static String recognitionModelWeightsPath;
+    public static String recognitionTrainScriptPath;
+    public static String recognitionTrainConfigPath;
     public static String recognitionYoloWeightsPath;
 
     public static String getCamera1SamplesPath() {
@@ -78,9 +79,14 @@ public class DirectoryUtilities {
         DirectoryUtilities.recognitionInferenceConfigPath = recognitionInferenceConfigLocation;
     }
 
-    @Value("${recognition-model-weights-path}")
-    public void setRecognitionModelWeightsLocation(String recognitionModelWeightsLocation) {
-        DirectoryUtilities.recognitionModelWeightsPath = recognitionModelWeightsLocation;
+    @Value("${recognition-train-script-path}")
+    public void setRecognitionTrainScriptLocation(String recognitionTrainScriptLocation) {
+        DirectoryUtilities.recognitionTrainScriptPath = recognitionTrainScriptLocation;
+    }
+
+    @Value("${recognition-train-config-path}")
+    public void setRecognitionTrainConfigLocation(String recognitionTrainConfigLocation) {
+        DirectoryUtilities.recognitionTrainConfigPath = recognitionTrainConfigLocation;
     }
 
     @Value("${recognition-yolo-weights-path}")
@@ -95,6 +101,10 @@ public class DirectoryUtilities {
 
     public static String getInferenceDataPath() {
         return rootDataPath + "/inference-data";
+    }
+
+    public static String getRecognitionModelWeightsPath() {
+        return rootDataPath + "/weights";
     }
 
     public static void purgeOrCreateDirectory(String url) throws IOException {

@@ -5,11 +5,9 @@ import mgkm.smsbackend.jobsConfigs.JobConfig;
 import mgkm.smsbackend.models.Model;
 import mgkm.smsbackend.models.ModelType;
 import mgkm.smsbackend.services.ModelService;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
 import java.util.List;
 
 @RestController
@@ -41,8 +39,8 @@ public class ModelsController extends BaseController {
     // Training -------------------------------------------------------------
 
     @PostMapping("/start-training")
-    public String startTrainingJob() {
-        return jobConfig.startTrainingJob();
+    public String startTrainingJob(@RequestBody Model model) {
+        return jobConfig.startTrainingJob(model.getModelFileName());
     }
 
     @PostMapping("/stop-training")
@@ -68,8 +66,13 @@ public class ModelsController extends BaseController {
     }
 
     @PostMapping("/initialize")
-    public void initialize() {
+    public void initialize() throws IOException {
         this.modelService.initialize();
+    }
+
+    @DeleteMapping("/{modelId}")
+    public void deleteModel(@PathVariable Integer modelId) throws IOException {
+        this.modelService.deleteModel(modelId);
     }
 
 }

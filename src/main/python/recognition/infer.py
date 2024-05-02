@@ -48,7 +48,6 @@ def build_transforms():
 
 
 def build_model(cfg):
-    print(cfg)
     model = models.SupConModel(cfg.backbone, num_classes=0)
     cfg.features_dim = model.features_dim
     
@@ -151,6 +150,9 @@ def process_image(cfg, image, model, yolo_model, feat_index, rf_boxes, metadata,
     image_res = yolo_model.predict(image, iou=0.5)
     detected_boxes = image_res[0].boxes.xyxy
 
+    detected_boxes = detected_boxes.to(cfg.device)
+    rf_boxes = rf_boxes.to(cfg.device)
+
     iou_mat = box_iou(detected_boxes, rf_boxes)
     indices = torch.nonzero(iou_mat >= cfg.iou)
 
@@ -202,7 +204,8 @@ def inference(cfg, model, yolo_model, transform):
         with torch.no_grad():
             for i, box in enumerate(rf_boxes):
                 img = rf_image.crop(tuple(box.tolist()))
-                feat = model(transform(img).unsqueeze(0)).squeeze().detach().cpu()
+                img_tensor = transform(img).unsqueeze(0).to(cfg.device)
+                feat = model(img_tensor).squeeze().detach().cpu()
                 features[i] = feat
 
         features = F.normalize(features)
@@ -217,22 +220,13 @@ def inference(cfg, model, yolo_model, transform):
                 results = process_image(cfg, image, model, yolo_model, feat_index, rf_boxes, metadata, transform)
                 results['image_file'] = image_file
                 results_per_camera[camera_name].append(results)
-
-    results_reformatted = []
-    for camera_key, results in results_per_camera.items():
-        results_reformatted.append({
-            "camera": camera_key,
-            "results": results
-        })
+        
     
     json_path = os.path.join(cfg.data_dir, 'inference.json')
     with open(json_path, 'w') as json_file:
-            json.dump(results_reformatted, json_file, indent=2)
-
-    json_path = os.path.join(cfg.data_dir, 'inference-old.json')
-    with open(json_path, 'w') as json_file:
             json.dump(results_per_camera, json_file, indent=2)
-    
+
+
     return results_per_camera
 
 
@@ -248,3 +242,6 @@ def main():
 
 if __name__ == '__main__':
     main()
+
+
+    

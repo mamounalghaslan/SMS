@@ -5,4 +5,4 @@ camera_names: all
 backbone: resnet18
 checkpoint: F:/SMS/sms-backend/src/main/python/recognition/weights/checkpoint_80.pth
 yolo_weights: F:/SMS/sms-backend/src/main/python/recognition/weights/DavidK0-YOLOv8-small.pt
-device: cpu
+device: cuda

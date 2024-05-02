@@ -1,17 +1,17 @@
-program: trian.py
+python: F:/anaconda3/python.exe
+program: F:/SMS/sms-backend/src/main/python/recognition/trian.py
 backbone: resnet18
 dataset: danube
-data_dir: data/
-output_dir: ./weights
-# checkpoint:
-
+data_dir: F:\SMS-DATA\inference-data
+output_dir: F:/SMS-DATA/weights
+full_training: true
 batch_size: 256
 save_every: 50
-epochs: 100
-test_percent: 0.1
-
+epochs: 80
+test_percent: 0.0
 epsilon: 0
 lr: 0.01
-lr_decay: step
-lr_decay_epochs: 33,66
+lr_decay: cosine
+lr_decay_epochs: 26,53
 n_views: 2
+device: cuda

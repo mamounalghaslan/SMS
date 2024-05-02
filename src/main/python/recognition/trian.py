@@ -97,6 +97,8 @@ def parse_arguments():
 
     return cfg
 
+def train_transform(x, y):
+    return x, y, 0
 
 def build_data(cfg):
     if cfg.dataset != 'danube':
@@ -148,11 +150,11 @@ def build_data(cfg):
 
         train_dataset = data.DanubeDataset(data_dir=cfg.data_dir, transform=T_train)
         cfg.num_classes = train_dataset.num_classes
-        train_dataset = data.MapDataset(train_dataset, lambda x, y: (x, y, 0))
+        train_dataset = data.MapDataset(train_dataset, train_transform)
 
         if cfg.test_percent > 0.0:
             test_dataset = data.DanubeDataset(data_dir=cfg.data_dir, transform=T_test)
-            test_dataset = data.MapDataset(test_dataset, lambda x, y: (x, y, 0))
+            test_dataset = data.MapDataset(test_dataset, train_transform)
 
             data_size = len(train_dataset)
             indices = list(range(data_size))
