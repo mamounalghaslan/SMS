@@ -2,7 +2,9 @@ package mgkm.smsbackend.jobsConfigs.inference;
 
 import mgkm.smsbackend.jobsConfigs.listeners.JobListener;
 import mgkm.smsbackend.jobsConfigs.listeners.StepListener;
+import mgkm.smsbackend.models.Model;
 import mgkm.smsbackend.services.CamerasService;
+import mgkm.smsbackend.services.ModelService;
 import mgkm.smsbackend.services.ProductsService;
 import mgkm.smsbackend.services.ShelfImageService;
 import org.springframework.batch.core.Job;
@@ -19,13 +21,16 @@ public class InferenceTaskletsConfig {
     private final CamerasService camerasService;
     private final ShelfImageService shelfImageService;
     private final ProductsService productsService;
+    private final ModelService modelService;
 
     public InferenceTaskletsConfig(CamerasService camerasService,
                                    ShelfImageService shelfImageService,
-                                   ProductsService productsService) {
+                                   ProductsService productsService,
+                                   ModelService modelService) {
         this.camerasService = camerasService;
         this.shelfImageService = shelfImageService;
         this.productsService = productsService;
+        this.modelService = modelService;
     }
 
     protected Step dataPreparationStep(JobRepository jobRepository, PlatformTransactionManager transactionManager) {
@@ -36,10 +41,12 @@ public class InferenceTaskletsConfig {
                 .build();
     }
 
-    protected Step inferenceStep(JobRepository jobRepository, PlatformTransactionManager transactionManager) {
+    protected Step inferenceStep(JobRepository jobRepository,
+                                 PlatformTransactionManager transactionManager,
+                                 Model model) {
         return new StepBuilder("Inference Step", jobRepository)
                 .listener(new StepListener())
-                .tasklet(new InferenceTasklet(), transactionManager)
+                .tasklet(new InferenceTasklet(modelService, model), transactionManager)
                 .build();
     }
 
@@ -51,9 +58,11 @@ public class InferenceTaskletsConfig {
                 .build();
     }
 
-    public Job inferenceJob(JobRepository jobRepository, PlatformTransactionManager transactionManager) {
+    public Job inferenceJob(JobRepository jobRepository,
+                            PlatformTransactionManager transactionManager,
+                            Model model) {
         Step dataPreparationStep = dataPreparationStep(jobRepository, transactionManager);
-        Step inferenceStep = inferenceStep(jobRepository, transactionManager);
+        Step inferenceStep = inferenceStep(jobRepository, transactionManager, model);
         Step outputStep = outputStep(jobRepository, transactionManager);
 
         return new JobBuilder("Inference Job", jobRepository)

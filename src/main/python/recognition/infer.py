@@ -220,9 +220,19 @@ def inference(cfg, model, yolo_model, transform):
                 results = process_image(cfg, image, model, yolo_model, feat_index, rf_boxes, metadata, transform)
                 results['image_file'] = image_file
                 results_per_camera[camera_name].append(results)
-        
-    
+
+    results_reformatted = []
+    for camera_key, results in results_per_camera.items():
+        results_reformatted.append({
+            "camera": camera_key,
+            "results": results
+        })
+
     json_path = os.path.join(cfg.data_dir, 'inference.json')
+    with open(json_path, 'w') as json_file:
+        json.dump(results_reformatted, json_file, indent=2)
+    
+    json_path = os.path.join(cfg.data_dir, 'inference-old.json')
     with open(json_path, 'w') as json_file:
             json.dump(results_per_camera, json_file, indent=2)
 

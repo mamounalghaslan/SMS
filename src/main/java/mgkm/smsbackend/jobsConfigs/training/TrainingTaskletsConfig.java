@@ -36,10 +36,12 @@ public class TrainingTaskletsConfig {
                 .build();
     }
 
-    protected Step inferenceStep(JobRepository jobRepository, PlatformTransactionManager transactionManager) {
+    protected Step trainingStep(JobRepository jobRepository,
+                                PlatformTransactionManager transactionManager,
+                                String backboneName) {
         return new StepBuilder("Training Step", jobRepository)
                 .listener(new StepListener())
-                .tasklet(new TrainingTasklet(), transactionManager)
+                .tasklet(new TrainingTasklet(backboneName), transactionManager)
                 .build();
     }
 
@@ -50,12 +52,14 @@ public class TrainingTaskletsConfig {
                 .build();
     }
 
-    public Job trainingJob(JobRepository jobRepository, PlatformTransactionManager transactionManager) {
+    public Job trainingJob(JobRepository jobRepository,
+                           PlatformTransactionManager transactionManager,
+                           String backboneName) {
 
         return new JobBuilder("Training Job", jobRepository)
                 .listener(new JobListener())
                 .start(dataPreparationStep(jobRepository, transactionManager))
-                .next(inferenceStep(jobRepository, transactionManager))
+                .next(trainingStep(jobRepository, transactionManager, backboneName))
                 .next(outputStep(jobRepository, transactionManager))
                 .build();
     }

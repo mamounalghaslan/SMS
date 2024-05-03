@@ -15,6 +15,12 @@ public class TrainingTasklet implements Tasklet {
 
     private static final Logger log = LoggerFactory.getLogger(JobListener.class);
 
+    private final String backboneName;
+
+    public TrainingTasklet(String backboneName) {
+        this.backboneName = backboneName;
+    }
+
     @Override
     public RepeatStatus execute(@Nonnull StepContribution contribution,
                                 @Nonnull ChunkContext chunkContext) {
@@ -25,7 +31,7 @@ public class TrainingTasklet implements Tasklet {
         String trainConfig =
                 "python: " + DirectoryUtilities.pythonPath + "\n"
                 + "program: " + DirectoryUtilities.recognitionTrainScriptPath + "\n"
-                + "backbone: resnet18\n"
+                + "backbone: " + backboneName + "\n"
                 + "dataset: danube\n"
                 + "data_dir: " + DirectoryUtilities.getInferenceDataPath().replace('/', '\\') + "\n"
                 + "output_dir: " + DirectoryUtilities.getRecognitionModelWeightsPath() + "\n"

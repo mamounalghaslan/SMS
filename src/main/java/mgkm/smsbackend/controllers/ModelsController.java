@@ -22,8 +22,8 @@ public class ModelsController extends BaseController {
     // Inference -------------------------------------------------------------
 
     @PostMapping("/start-inference")
-    public String startInferenceJob() {
-        return jobConfig.startInferenceJob();
+    public String startInferenceJob(@RequestBody Model model) {
+        return jobConfig.startInferenceJob(model);
     }
 
     @PostMapping("/stop-inference")
@@ -39,8 +39,8 @@ public class ModelsController extends BaseController {
     // Training -------------------------------------------------------------
 
     @PostMapping("/start-training")
-    public String startTrainingJob(@RequestBody Model model) {
-        return jobConfig.startTrainingJob(model.getModelFileName());
+    public String startTrainingJob(@RequestBody ModelType modelType) {
+        return jobConfig.startTrainingJob(modelType.getBackboneName());
     }
 
     @PostMapping("/stop-training")

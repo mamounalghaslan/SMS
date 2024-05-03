@@ -18,9 +18,6 @@ public class ModelType {
     private Integer systemId;
 
     @Nonnull
-    private String name;
-
-    @Nonnull
-    private String pretrainedModelPath;
+    private String backboneName;
 
 }

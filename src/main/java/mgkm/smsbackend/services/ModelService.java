@@ -66,7 +66,7 @@ public class ModelService {
     }
 
     public void initialize() throws IOException {
-        ModelType modelType = new ModelType(null, "ResNet18", "resnet18.pth");
+        ModelType modelType = new ModelType(null, "resnet18");
         this.modelTypeRepository.save(modelType);
 
         Model model = new Model(

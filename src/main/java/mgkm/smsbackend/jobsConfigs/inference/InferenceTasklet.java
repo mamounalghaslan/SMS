@@ -2,6 +2,8 @@ package mgkm.smsbackend.jobsConfigs.inference;
 
 import jakarta.annotation.Nonnull;
 import mgkm.smsbackend.jobsConfigs.listeners.JobListener;
+import mgkm.smsbackend.models.Model;
+import mgkm.smsbackend.services.ModelService;
 import mgkm.smsbackend.utilities.DirectoryUtilities;
 import mgkm.smsbackend.utilities.PythonCaller;
 import org.slf4j.Logger;
@@ -13,10 +15,21 @@ import org.springframework.batch.repeat.RepeatStatus;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.util.List;
+import java.util.Objects;
 
 public class InferenceTasklet implements Tasklet {
 
     private static final Logger log = LoggerFactory.getLogger(JobListener.class);
+
+    private final ModelService modelService;
+    private final Model model;
+
+    public InferenceTasklet(ModelService modelService,
+                            Model model) {
+        this.modelService = modelService;
+        this.model = model;
+    }
 
     @Override
     public RepeatStatus execute(@Nonnull StepContribution contribution,
@@ -24,7 +37,11 @@ public class InferenceTasklet implements Tasklet {
 
         log.info("Inference Tasklet");
 
-        // TODO: Get the running model
+        List<Model> allModels = this.modelService.getAllModels();
+        allModels.forEach(model -> {
+            model.setIsRunning(Objects.equals(model.getSystemId(), this.model.getSystemId()));
+            modelService.saveModel(model);
+        });
 
         // Generate the inference.yaml
         String inferenceConfig =
@@ -32,8 +49,10 @@ public class InferenceTasklet implements Tasklet {
                 + "program: " + DirectoryUtilities.recognitionInferenceScriptPath + "\n"
                 + "data_dir: " + DirectoryUtilities.getInferenceDataPath() + "\n"
                 + "camera_names: all\n"
-                + "backbone: resnet18\n"
-                + "checkpoint: " + DirectoryUtilities.getRecognitionModelWeightsPath() + "/checkpoint_80.pth\n"
+                + "backbone: " + model.getModelType().getBackboneName() + "\n"
+                + "checkpoint: " + DirectoryUtilities.getRecognitionModelWeightsPath()
+                        + "/" + model.getSystemId()
+                        + "/" + model.getModelFileName() + "\n"
                 + "yolo_weights: " + DirectoryUtilities.recognitionYoloWeightsPath + "\n"
                 + "device: " + DirectoryUtilities.deviceType;
 

@@ -3,6 +3,7 @@ package mgkm.smsbackend.jobsConfigs;
 import mgkm.smsbackend.jobsConfigs.inference.InferenceTaskletsConfig;
 import mgkm.smsbackend.jobsConfigs.listeners.JobListener;
 import mgkm.smsbackend.jobsConfigs.training.TrainingTaskletsConfig;
+import mgkm.smsbackend.models.Model;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.*;
@@ -51,7 +52,7 @@ public class JobConfig {
 
     // Inference -----------------------------------------------------------------------------------------
 
-    public String startInferenceJob() {
+    public String startInferenceJob(Model model) {
 
         if (this.inferenceFutureJob != null && !this.inferenceFutureJob.isDone()) {
             log.info("Inference Job already running!");
@@ -63,7 +64,7 @@ public class JobConfig {
                     try {
                         this.jobLauncher.run(
                                 this.inferenceTaskletsConfig.inferenceJob(
-                                        this.jobRepository, this.transactionManager),
+                                        this.jobRepository, this.transactionManager, model),
                                 new JobParametersBuilder()
                                         .addString("JobID", String.valueOf(new Date().getTime()))
                                         .toJobParameters());
@@ -98,7 +99,7 @@ public class JobConfig {
 
     // Training -----------------------------------------------------------------------------------------
 
-    public String startTrainingJob(String modelFileName) {
+    public String startTrainingJob(String backboneName) {
 
         if (this.trainingFutureJob != null && !this.trainingFutureJob.isDone()) {
             log.info("Training Job already running!");
@@ -111,7 +112,8 @@ public class JobConfig {
                         this.jobLauncher.run(
                                 this.trainingTaskletsConfig.trainingJob(
                                         this.jobRepository,
-                                        this.transactionManager),
+                                        this.transactionManager,
+                                        backboneName),
                                 new JobParametersBuilder()
                                         .addString("JobID", String.valueOf(new Date().getTime()))
                                         .toJobParameters());
