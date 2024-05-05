@@ -136,8 +136,8 @@ def find_gaps(cfg, iou_mat, rf_boxes, metadata):
             "id": metadata[idx]["id"],
             "boundingBox": {
                 "x1": box[0],
-                "x2": box[1],
-                "y1": box[2],
+                "y1": box[1],
+                "x2": box[2],
                 "y2": box[3]
             }
         }
