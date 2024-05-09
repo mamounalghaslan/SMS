@@ -117,5 +117,11 @@ public class ImageUtilities {
 
     }
 
+    public static void rotateImage(String imageUrl) throws IOException, ImageReadException {
+        File imageFile = new File(imageUrl);
+        BufferedImage bufferedImage = ImageUtilities.getBufferedImage(imageUrl);
+        ImageIO.write(bufferedImage, "jpg", imageFile);
+    }
+
 
 }

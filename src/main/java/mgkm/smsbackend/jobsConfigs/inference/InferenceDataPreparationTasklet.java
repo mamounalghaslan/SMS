@@ -10,6 +10,7 @@ import mgkm.smsbackend.services.CamerasService;
 import mgkm.smsbackend.services.ShelfImageService;
 import mgkm.smsbackend.utilities.DirectoryUtilities;
 import mgkm.smsbackend.utilities.ImageUtilities;
+import org.apache.commons.imaging.ImageReadException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.StepContribution;
@@ -17,6 +18,8 @@ import org.springframework.batch.core.scope.context.ChunkContext;
 import org.springframework.batch.core.step.tasklet.Tasklet;
 import org.springframework.batch.repeat.RepeatStatus;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.List;
@@ -95,8 +98,13 @@ public class InferenceDataPreparationTasklet implements Tasklet {
                 DirectoryUtilities.copyFileToDirectory(
                         sampleImagePath, cameraDirectory + "/images/capture.jpg");
 
+                ImageUtilities.rotateImage(cameraDirectory + "/images/capture.jpg");
+
             } catch (IOException e) {
                 log.error("Failed to create camera directory: {}", cameraDirectory);
+                throw new RuntimeException(e);
+            } catch (ImageReadException e) {
+                log.error("Failed to rotate image file: {}", cameraDirectory + "/images/capture.jpg");
                 throw new RuntimeException(e);
             }
 
