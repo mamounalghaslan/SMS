@@ -1,8 +1,8 @@
-python: F:/anaconda3/python.exe
-program: F:/SMS/sms-backend/src/main/python/recognition/infer.py
-data_dir: F:/SMS-DATA/inference-data
+python: C:/Development/Anaconda3/python.exe
+program: C:/Development/SMS/sms-backend/src/main/python/recognition/infer.py
+data_dir: C:/Development/SMS-DATA/inference-data
 camera_names: all
 backbone: resnet18
-checkpoint: F:/SMS-DATA/weights/203/203_weights.pth
-yolo_weights: F:/SMS/sms-backend/src/main/python/recognition/weights/DavidK0-YOLOv8-small.pt
-device: cuda
+checkpoint: C:/Development/SMS-DATA/weights/2/2_weights.pth
+yolo_weights: C:/Development/SMS/sms-backend/src/main/python/recognition/weights/DavidK0-YOLOv8-small.pt
+device: cpu
